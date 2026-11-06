@@ -1,4 +1,3 @@
-'tsx'
 'use client';
 
 import React, { useState } from 'react';
@@ -22,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-2xs">
       {/* Main Enterprise Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 h-24 flex items-center justify-between">
+      <div className="max-w-[1760px] mx-auto px-6 sm:px-10 lg:px-16 2xl:px-20 h-24 flex items-center justify-between">
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
@@ -99,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
             <ArrowUpRight className="w-4 h-4" />
           </button>
 
-          {/* Role selector dropdown helper */}
+          {/* Role selector dropdown helper 
           <div className="hidden xl:flex items-center gap-2 text-xs text-slate-500 pl-2 border-l border-slate-200">
             <span>Rôle :</span>
             <select
@@ -111,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
               <option value="customer">Client Labo</option>
               <option value="admin">Admin</option>
             </select>
-          </div>
+          </div>*/}
 
           {/* Mobile Menu Button */}
           <button

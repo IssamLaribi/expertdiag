@@ -1,4 +1,3 @@
-'tsx'
 'use client';
 
 import React from 'react';
@@ -8,7 +7,7 @@ import { Microscope, Phone, Mail, MapPin, ShieldCheck, Clock, Shield } from 'luc
 export const Footer: React.FC = () => {
   return (
     <footer className="bg-white text-slate-600 pt-16 pb-12 border-t border-slate-100">
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+      <div className="max-w-[1760px] mx-auto px-6 sm:px-10 lg:px-16 2xl:px-20 grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
         {/* Company Info */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
@@ -78,7 +77,7 @@ export const Footer: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 pt-8 border-t border-slate-100 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="max-w-[1760px] mx-auto px-6 sm:px-10 lg:px-16 2xl:px-20 pt-8 border-t border-slate-100 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
           © 2026 Expert Diagnostic S.R.L. Tous droits réservés. Développé pour la biologie médicale algérienne.
         </div>
