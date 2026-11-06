@@ -1,4 +1,3 @@
-'tsx'
 'use client';
 
 import React, { useState, useMemo, Suspense } from 'react';
@@ -70,7 +69,7 @@ function CatalogueContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 space-y-8 bg-white">
+    <div className="max-w-[1760px] mx-auto px-6 sm:px-10 lg:px-16 2xl:px-20 py-10 space-y-8 bg-white">
       
       {/* Page Header */}
       <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
