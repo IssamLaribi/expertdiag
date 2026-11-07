@@ -23,12 +23,6 @@ import {
 const HERO_IMAGE =
     'https://quantum-x.sk/__l5e/assets-v1/5355e229-bb33-4b15-bdd3-26501a6a8104/equipment-range.webp';
 
-const TRUST_POINTS = [
-    { icon: Truck, label: 'Livraison sur 58 wilayas' },
-    { icon: Headset, label: 'Support & SAV 24/7' },
-    { icon: ShieldCheck, label: 'Produits certifiés' },
-];
-
 const STATS = [
     { value: '58 Wilayas', label: 'Couverture logistique nationale', accent: true },
     { value: '< 1 min', label: 'Mise à jour des stocks en temps réel', accent: false },
@@ -267,14 +261,6 @@ export default function HomePage() {
                             </Link>
                         </div>
 
-                        <ul className="flex flex-wrap gap-x-6 gap-y-3 pt-2">
-                            {TRUST_POINTS.map(({ icon: Icon, label }) => (
-                                <li key={label} className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                                    <Icon className="w-4 h-4 text-blue-600" />
-                                    {label}
-                                </li>
-                            ))}
-                        </ul>
                     </div>
                 </div>
             </section>
