@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
             <ArrowUpRight className="w-4 h-4" />
           </button>
 
-          {/* Role selector dropdown helper 
+          {/* Role selector dropdown helper */}
           <div className="hidden xl:flex items-center gap-2 text-xs text-slate-500 pl-2 border-l border-slate-200">
             <span>Rôle :</span>
             <select
@@ -110,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
               <option value="customer">Client Labo</option>
               <option value="admin">Admin</option>
             </select>
-          </div>*/}
+          </div>
 
           {/* Mobile Menu Button */}
           <button

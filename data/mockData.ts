@@ -5,27 +5,27 @@ export const INITIAL_DOMAINS: Domain[] = [
   {
     id: 'dom-1',
     name: 'Biochimie',
-    image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=800&q=85',
+    image: 'https://media.istockphoto.com/id/450853983/de/foto/dna-molek%C3%BClen.jpg?s=612x612&w=0&k=20&c=xZRTTB1tAANqBh4YwejHuY7SkLgsJH3zLymWFCIs5HE=',
   },
   {
     id: 'dom-2',
     name: 'Hématologie',
-    image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&q=85',
+    image: 'https://cdn.pixabay.com/photo/2024/05/27/12/20/red-blood-cell-8791098_640.jpg',
   },
   {
     id: 'dom-3',
     name: 'Immunologie',
-    image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=800&q=85',
+    image: 'https://media.istockphoto.com/id/1263176450/fr/photo/lymphocytes-t-du-syst%C3%A8me-immunitaire-attaquant-les-cellules-canc%C3%A9reuses-en-croissance.jpg?s=612x612&w=0&k=20&c=hVjZHJJWqWbgFjrHkiLxtiRXFry5Lk6m12uluXYfVsM=',
   },
   {
     id: 'dom-4',
     name: 'Microbiologie',
-    image: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=800&q=85',
+    image: 'https://img.magnific.com/premium-photo/diverse-array-colorful-bacteria-cultures-petri-dishes-microbial-samples-various-forms-concept-microbiology-laboratory-research-scientific-studies-biological-diversity_981050-16093.jpg?semt=ais_hybrid&w=740&q=80',
   },
   {
     id: 'dom-5',
     name: 'Urinalyse',
-    image: 'https://images.unsplash.com/photo-1583912267550-d6c2f1f8b9c7?w=800&q=85',
+    image: 'https://t4.ftcdn.net/jpg/06/66/02/23/360_F_666022351_Ml6KqBWJtJHBSYE9VZ1s7H5gjzPusqYS.jpg',
   },
 ];
 
@@ -81,7 +81,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Lavette de cuvettes automatique avec station de lavage préchauffée',
       'Consommation d\'eau ultra-faible (< 5L/heure)'
     ],
-    image: 'https://5.imimg.com/data5/OD/IQ/MY-5636256/bs-240-fully-automated-biochemistry-analyser-1000x1000.jpg',
+    image: 'https://5.imimg.com/data5/SELLER/Default/2022/7/WT/XN/TE/1372593/bs-240-chemistry-analyzer5-500x500.jpg',
     status: 'available',
     visible: true,
     priceEstimate: 'Sur Demande de Devis'
@@ -195,7 +195,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Pureté analytique garantie sans microcristaux',
       'Compatible avec les systèmes de raccordement automatique'
     ],
-    image: 'https://qtc.a2a-logistics.com/wp-content/uploads/2022/03/881393.jpg',
+    image: 'https://shop.sysmex.ch/media/af/d7/96/1728289122/DCL_Cellpack_20L_02_frontal.jpg?ts=1728289122',
     status: 'available',
     visible: true,
     priceEstimate: '24 000 DZD'
