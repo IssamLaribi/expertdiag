@@ -416,11 +416,14 @@ export default function HomePage() {
                                         key={product.id}
                                         className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-2xl hover:border-blue-200 transition-all duration-300 flex flex-col group"
                                     >
-                                        <Link href={`/catalogue/${product.id}`} className={`block h-56 overflow-hidden bg-slate-100 ${FOCUS}`}>
+                                        <Link
+                                            href={`/catalogue/${product.id}`}
+                                            className="block h-56 overflow-hidden bg-white"
+                                        >
                                             <img
                                                 src={product.image}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                className="w-full h-full object-contain p-5 group-hover:scale-105 transition-transform duration-500"
                                             />
                                         </Link>
 
