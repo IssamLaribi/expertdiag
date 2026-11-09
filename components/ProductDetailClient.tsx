@@ -53,9 +53,8 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 function StatusBadge({ available }: { available: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 text-xs font-semibold ${
-        available ? 'text-emerald-700' : 'text-rose-700'
-      }`}
+      className={`inline-flex items-center gap-2 text-xs font-semibold ${available ? 'text-emerald-700' : 'text-rose-700'
+        }`}
     >
       <span className={`w-2 h-2 rounded-full ${available ? 'bg-emerald-500' : 'bg-rose-500'}`} />
       {available ? 'Disponible immédiatement' : 'Temporairement indisponible'}
@@ -117,24 +116,24 @@ export function ProductDetailClient({ id }: { id: string }) {
       <div className={`${CONTAINER} py-10 lg:py-14 space-y-16`}>
         {/* ------------------------------ Breadcrumb ----------------------------- */}
         {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/catalogue" className="hover:text-blue-600 transition flex items-center gap-1">
-          <ArrowLeft className="w-4 h-4" />
-          Retour au catalogue
-        </Link>
-        <span>/</span>
-        <span className="text-slate-900 font-medium">{product.name}</span>
-      </div>
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <Link href="/catalogue" className="hover:text-blue-600 transition flex items-center gap-1">
+            <ArrowLeft className="w-4 h-4" />
+            Retour au catalogue
+          </Link>
+          <span>/</span>
+          <span className="text-slate-900 font-medium">{product.name}</span>
+        </div>
 
         {/* ------------------------------- Main grid ----------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           {/* Image */}
           <div className="lg:col-span-7 lg:sticky lg:top-32">
-            <div className="rounded-3xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xl h-[340px] sm:h-[480px] lg:h-[600px]">
+            <div className="rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-xl h-[340px] sm:h-[480px] lg:h-[600px]">
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-4"
               />
             </div>
           </div>
@@ -165,9 +164,8 @@ export function ProductDetailClient({ id }: { id: string }) {
                     {spec.label}
                   </dt>
                   <dd
-                    className={`text-sm font-bold text-slate-900 ${
-                      spec.mono ? 'font-mono' : ''
-                    }`}
+                    className={`text-sm font-bold text-slate-900 ${spec.mono ? 'font-mono' : ''
+                      }`}
                   >
                     {spec.value}
                   </dd>
