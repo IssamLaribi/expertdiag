@@ -33,6 +33,7 @@ export function CatalogTab({
   fStatus,
   setFStatus,
   onOpenAddModal,
+  onEditProduct,
   onToggleAvailability,
   onRemoveProduct,
 }: {
@@ -47,6 +48,7 @@ export function CatalogTab({
   fStatus: string;
   setFStatus: (v: string) => void;
   onOpenAddModal: () => void;
+  onEditProduct: (p: Product) => void;
   onToggleAvailability: (id: string) => void;
   onRemoveProduct: (p: Product) => void;
 }) {
@@ -120,7 +122,7 @@ export function CatalogTab({
                     <td className="px-5 py-4 font-semibold text-slate-900">{p.priceEstimate || 'Sur devis'}</td>
                     <td className="px-5 py-4">
                       <button
-                        onClick={() => onToggleAvailability(p.id)}
+                        onClick={() => {}}
                         title="Cliquer pour changer la disponibilité"
                         className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 w-fit ${FOCUS} ${p.status === 'available' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
                           }`}
@@ -134,7 +136,7 @@ export function CatalogTab({
                         <Link href={`/catalogue/${p.id}`} aria-label="Voir la fiche publique" className={`p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition ${FOCUS}`}>
                           <ArrowUpRight className="w-4 h-4" />
                         </Link>
-                        <button onClick={() => {}} aria-label="Modifier" title="Modifier" className={`p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition ${FOCUS}`}>
+                        <button onClick={() => onEditProduct(p)} aria-label="Modifier" title="Modifier" className={`p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition ${FOCUS}`}>
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button onClick={() => onRemoveProduct(p)} aria-label="Supprimer" title="Supprimer" className={`p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition ${FOCUS}`}>

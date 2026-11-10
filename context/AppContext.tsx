@@ -88,32 +88,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [products, orders, problems]);
 
+  const mapDbProduct = (data: any): Product => ({
+    id: String(data.id),
+    reference: data.reference,
+    name: data.name,
+    type: data.type,
+    brand: data.brand,
+    domain: data.domain,
+    description: data.description,
+    features: data.features || [],
+    image: data.image,
+    status: data.status,
+    expectedReturnDate: data.expected_return_date || data.expectedReturnDate,
+    note: data.note,
+    visible: data.visible,
+    priceEstimate: data.price_estimate || data.priceEstimate,
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [brandsResponse, domainsResponse] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/brands`),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/domains`),
-        ]);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/products`
+        );
 
-        if (!brandsResponse.ok || !domainsResponse.ok) {
-          throw new Error('Failed to fetch brands or domains');
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
         }
 
-        const brandsResult = await brandsResponse.json();
-        const domainsResult = await domainsResponse.json();
+        const result = await response.json();
 
-        setBrands(brandsResult.data);
-        setDomains(domainsResult.data);
-
+        if (result.data) {
+          setProducts(result.data.map(mapDbProduct));
+        }
       } catch (error) {
-        console.error('Error fetching brands and domains:', error);
+        console.error('Error fetching products from API:', error);
       }
     };
 
     fetchData();
   }, []);
-
   const addToCart = (product: Product, quantity = 1) => {
     if (product.status === 'unavailable') {
       alert('Ce produit est temporairement indisponible et ne peut pas être ajouté à la commande.');
@@ -225,16 +239,92 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const result = await response.json();
+    const data = result.data;
 
-    console.log('Product created:', result.data);
+    const newProduct: Product = {
+      id: data.id || `prod-${Date.now()}`,
+      reference: data.reference,
+      name: data.name,
+      type: data.type,
+      brand: data.brand,
+      domain: data.domain,
+      description: data.description,
+      features: data.features || [],
+      image: data.image,
+      status: data.status,
+      expectedReturnDate: data.expected_return_date || data.expectedReturnDate,
+      note: data.note,
+      visible: data.visible,
+      priceEstimate: data.price_estimate || data.priceEstimate,
+    };
+
+    setProducts(prev => [newProduct, ...prev]);
   };
 
-  const updateProduct = (updated: Product) => {
-    setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
+  const updateProduct = async (updated: Product) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${updated.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: updated.name,
+            reference: updated.reference,
+            type: updated.type,
+            brand: updated.brand,
+            domain: updated.domain,
+            description: updated.description,
+            features: updated.features,
+            image: updated.image,
+            status: updated.status,
+            expectedReturnDate: updated.expectedReturnDate || null,
+            note: updated.note || null,
+            visible: updated.visible,
+            priceEstimate: updated.priceEstimate || 'Sur devis',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to update product');
+      }
+
+      const result = await response.json();
+      if (result.data) {
+        const mapped = mapDbProduct(result.data);
+        setProducts(prev => prev.map(p => p.id === mapped.id ? mapped : p));
+      } else {
+        setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
+      }
+    } catch (e) {
+      console.error('Error updating product via API:', e);
+      setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
+    }
   };
 
-  const deleteProduct = (productId: string) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
+  const deleteProduct = async (productId: string) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to delete product');
+      }
+
+      setProducts(prev => prev.filter(p => p.id !== productId));
+    } catch (e) {
+      console.error('Error deleting product via API:', e);
+      setProducts(prev => prev.filter(p => p.id !== productId));
+    }
   };
 
   const toggleProductAvailability = (productId: string, expectedReturnDate?: string, note?: string) => {

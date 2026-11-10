@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, CheckCircle2, Upload, X } from 'lucide-react';
+import { Domain, Brand } from '@/types';
 import {
   AppState,
   Product,
@@ -31,32 +32,35 @@ interface FormState {
 }
 
 export function AddProductModal({
+  product,
   products,
   domains,
   brands,
   onSave,
   onClose,
 }: {
+  product?: Product;
   products: Product[];
-  domains: AppState['domains'];
-  brands: AppState['brands'];
+  domains?: Domain[];
+  brands?: Brand[];
   onSave: (payload: Record<string, unknown>) => void;
   onClose: () => void;
 }) {
+  const isEditing = !!product;
   const [form, setForm] = useState<FormState>({
-    name: '',
-    reference: '',
-    type: 'reagent',
-    brand: brands[0]?.name || '',
-    domain: domains[0]?.name || '',
-    description: '',
-    image: DEFAULT_IMAGE,
-    priceEstimate: '',
-    status: 'available',
-    expectedReturnDate: '',
-    note: '',
-    features: ['Qualité certifiée'],
-    visible: true,
+    name: product?.name || '',
+    reference: product?.reference || '',
+    type: product?.type || 'reagent',
+    brand: product?.brand || '',
+    domain: product?.domain || '',
+    description: product?.description || '',
+    image: product?.image || DEFAULT_IMAGE,
+    priceEstimate: product?.priceEstimate || '',
+    status: product?.status || 'available',
+    expectedReturnDate: product?.expectedReturnDate || '',
+    note: product?.note || '',
+    features: product?.features?.length ? product.features : ['Qualité certifiée'],
+    visible: product?.visible ?? true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -84,7 +88,9 @@ export function AddProductModal({
 
     if (!form.name.trim()) next.name = 'Le nom est obligatoire.';
     if (!ref) next.reference = 'La référence est obligatoire.';
-    else if (products.some((p) => p.reference.toLowerCase() === ref)) next.reference = 'Cette référence existe déjà.';
+    else if (products.some((p) => p.reference.toLowerCase() === ref && (!isEditing || p.id !== product.id))) {
+      next.reference = 'Cette référence existe déjà.';
+    }
     if (!form.brand) next.brand = 'Choisissez une marque.';
     if (!form.domain) next.domain = 'Choisissez un domaine.';
     if (form.description.trim().length < 10) next.description = 'Description trop courte (10 caractères minimum).';
@@ -95,11 +101,12 @@ export function AddProductModal({
 
     const unavailable = form.status === 'unavailable';
     onSave({
+      ...(isEditing ? { id: product.id } : {}),
       name: form.name.trim(),
       reference: form.reference.trim(),
       type: form.type,
-      brand_id: brands.find((b) => b.name === form.brand)?.id,
-      domain_id: domains.find((d) => d.name === form.domain)?.id,
+      brand: form.brand,
+      domain: form.domain,
       description: form.description.trim(),
       features: form.features.map((f) => f.trim()).filter(Boolean),
       image: form.image.trim(),
@@ -111,8 +118,11 @@ export function AddProductModal({
     });
   };
 
+  const BRANDS = brands && brands.length > 0 ? brands.map(b => b.name) : ['Sysmex', 'Roche', 'Abbott', 'Siemens', 'Mindray', 'Medconn'];
+  const DOMAINS = domains && domains.length > 0 ? domains.map(d => d.name) : ['Hématologie', 'Biochimie', 'Immunologie', 'Microbiologie', 'Urinalyse'];
+
   return (
-    <Modal eyebrow="Nouveau produit" title="Ajouter un produit au catalogue" onClose={onClose}>
+    <Modal eyebrow={isEditing ? 'Modification' : 'Nouveau produit'} title={isEditing ? 'Modifier le produit' : 'Ajouter un produit au catalogue'} onClose={onClose}>
       <form onSubmit={submit} noValidate>
         <div className="p-6 sm:p-8 space-y-8">
           <fieldset className="space-y-5">
@@ -127,13 +137,17 @@ export function AddProductModal({
               <Field label="Marque / Fabricant" required error={errors.brand}>
                 <select className={INPUT} value={form.brand} onChange={(e) => set('brand', e.target.value)}>
                   <option value="">-- Choisir une marque --</option>
-                  {brands.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+                  {BRANDS.map((brand) => (
+                    <option key={brand} value={brand}>{brand}</option>
+                  ))}
                 </select>
               </Field>
               <Field label="Domaine / Spécialité" required error={errors.domain}>
                 <select className={INPUT} value={form.domain} onChange={(e) => set('domain', e.target.value)}>
                   <option value="">-- Choisir un domaine --</option>
-                  {domains.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  {DOMAINS.map((domain) => (
+                    <option key={domain} value={domain}>{domain}</option>
+                  ))}
                 </select>
               </Field>
               <Field label="Type de produit" required>
@@ -238,7 +252,7 @@ export function AddProductModal({
           <button type="button" onClick={onClose} className={BTN_GHOST}>Annuler</button>
           <button type="submit" className={BTN_PRIMARY}>
             <CheckCircle2 className="w-4 h-4" />
-            Créer le produit
+            {isEditing ? 'Enregistrer les modifications' : 'Créer le produit'}
           </button>
         </div>
       </form>

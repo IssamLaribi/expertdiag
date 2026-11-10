@@ -38,6 +38,7 @@ export default function AdminBackOfficePage() {
     problems,
     addProduct,
     deleteProduct,
+    updateProduct,
     toggleProductAvailability,
     updateOrderStatus,
     updateProblemStatus,
@@ -50,6 +51,8 @@ export default function AdminBackOfficePage() {
 
   const [tab, setTab] = useState<TabId>('stats');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showOfflineModal, setShowOfflineModal] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -108,6 +111,8 @@ export default function AdminBackOfficePage() {
   const availableCount = products.filter((p) => p.status === 'available').length;
   const shownOrders = orders.filter((o) => oFilter === 'all' || o.status === oFilter);
 
+
+
   const badges: Partial<Record<TabId, number>> = { orders: newOrders.length, sav: activeProblems.length };
 
   const createProduct = async (payload: Record<string, unknown>) => {
@@ -120,6 +125,11 @@ export default function AdminBackOfficePage() {
       console.error('Error creating product:', error);
       notify('Erreur lors de l’ajout du produit.');
     }
+  };
+
+  const editProduct = (p: Product) => {
+    setSelectedProduct(p);
+    setShowEditModal(true);
   };
 
   const removeProduct = (p: Product) => {
@@ -226,6 +236,7 @@ export default function AdminBackOfficePage() {
                 setFStatus={setFStatus}
                 onOpenAddModal={() => setShowAddModal(true)}
                 onToggleAvailability={toggleProductAvailability}
+                onEditProduct={editProduct}
                 onRemoveProduct={removeProduct}
               />
             )}
@@ -259,6 +270,23 @@ export default function AdminBackOfficePage() {
           brands={brands}
           onSave={createProduct}
           onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {showEditModal && selectedProduct && (
+        <AddProductModal
+          product={selectedProduct}
+          products={products}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedProduct(null);
+          }}
+          onSave={async (payload) => {
+            await updateProduct(payload as unknown as Product);
+            setShowEditModal(false);
+            setSelectedProduct(null);
+            notify(`« ${String(payload.name)} » a été modifié.`);
+          }}
         />
       )}
 

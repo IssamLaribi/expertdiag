@@ -8,8 +8,8 @@ class ProductCreate(BaseModel):
     reference: str
     type: Literal["equipment", "reagent", "consumable"]
 
-    brand_id: str
-    domain_id: str
+    brand: str
+    domain: str
 
     description: str
     features: list[str] = Field(default_factory=list)
