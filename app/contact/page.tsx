@@ -19,7 +19,7 @@ const CONTACT_ITEMS = [
   {
     icon: MapPin,
     label: 'Siège social & showroom',
-    value: 'Zone Industrielle, Oued Smar, Alger, Algérie',
+    value: 'Kouba, Alger, Algérie',
   },
   {
     icon: Phone,

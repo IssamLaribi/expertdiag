@@ -161,38 +161,6 @@ export default function AboutPage() {
           </ul>
         </div>
       </section>
-
-      {/* ----------------------------------- CTA --------------------------------- */}
-      <section className={`${CONTAINER} py-24`}>
-        <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-blue-950 rounded-3xl p-10 sm:p-16 text-white relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 max-w-2xl space-y-6">
-            <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">Travaillons ensemble</p>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-              Équipez votre laboratoire avec un partenaire de confiance.
-            </h2>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Découvrez notre catalogue ou contactez nos conseillers pour un devis personnalisé.
-            </p>
-            <div className="flex flex-wrap gap-4 pt-4">
-              <Link
-                href="/catalogue"
-                className={`px-8 py-4 bg-white text-slate-900 hover:bg-blue-50 font-bold text-sm rounded-xl shadow-lg transition flex items-center gap-2 ${FOCUS}`}
-              >
-                <span>Voir le catalogue</span>
-                <ArrowRight className="w-4 h-4 text-blue-600" />
-              </Link>
-              <Link
-                href="/contact"
-                className={`px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center gap-2 ${FOCUS}`}
-              >
-                <span>Nous contacter</span>
-                <ArrowUpRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
