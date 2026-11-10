@@ -110,10 +110,16 @@ export default function AdminBackOfficePage() {
 
   const badges: Partial<Record<TabId, number>> = { orders: newOrders.length, sav: activeProblems.length };
 
-  const createProduct = (payload: Record<string, unknown>) => {
-    addProduct(payload as any);
-    setShowAddModal(false);
-    notify(`« ${String(payload.name)} » a été ajouté au catalogue.`);
+  const createProduct = async (payload: Record<string, unknown>) => {
+    try {
+      await addProduct(payload as any);
+
+      setShowAddModal(false);
+      notify(`« ${String(payload.name)} » a été ajouté au catalogue.`);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      notify('Erreur lors de l’ajout du produit.');
+    }
   };
 
   const removeProduct = (p: Product) => {
@@ -178,9 +184,8 @@ export default function AdminBackOfficePage() {
                   key={id}
                   onClick={() => setTab(id)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition ${FOCUS} ${
-                    active ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition ${FOCUS} ${active ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="flex-1 text-left">{label}</span>

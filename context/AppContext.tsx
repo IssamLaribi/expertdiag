@@ -30,7 +30,7 @@ interface AppContextType {
   clearCart: () => void;
   submitOrder: (deliveryOptionId: string, address: string, wilaya: string, commune: string, comment?: string) => string;
   submitProblemReport: (equipmentId: string, serialNumber: string, problemType: any, description: string, urgency: any) => string;
-  addProduct: (product: Omit<Product, 'id'>) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
   toggleProductAvailability: (productId: string, expectedReturnDate?: string, note?: string) => void;
@@ -56,8 +56,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [role, setRole] = useState<UserRole>('visitor');
   const [currentCustomer, setCurrentCustomer] = useState<Customer>(DEFAULT_CUSTOMER);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [domains] = useState<Domain[]>(INITIAL_DOMAINS);
-  const [brands] = useState<Brand[]>(INITIAL_BRANDS);
+  const [domains, setDomains] = useState<Domain[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [deliveryOptions] = useState<DeliveryOption[]>(INITIAL_DELIVERY_OPTIONS);
   const [orders, setOrders] = useState<OrderRequest[]>(INITIAL_ORDERS);
   const [problems, setProblems] = useState<ProblemReport[]>(INITIAL_PROBLEMS);
@@ -87,6 +87,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Failed to save to localStorage', e);
     }
   }, [products, orders, problems]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [brandsResponse, domainsResponse] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/brands`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/domains`),
+        ]);
+
+        if (!brandsResponse.ok || !domainsResponse.ok) {
+          throw new Error('Failed to fetch brands or domains');
+        }
+
+        const brandsResult = await brandsResponse.json();
+        const domainsResult = await domainsResponse.json();
+
+        setBrands(brandsResult.data);
+        setDomains(domainsResult.data);
+
+      } catch (error) {
+        console.error('Error fetching brands and domains:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const addToCart = (product: Product, quantity = 1) => {
     if (product.status === 'unavailable') {
@@ -125,7 +151,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const submitOrder = (deliveryOptionId: string, address: string, wilaya: string, commune: string, comment?: string) => {
     const deliveryOpt = deliveryOptions.find(d => d.id === deliveryOptionId) || deliveryOptions[0];
     const newRef = `REQ-2026-${String(orders.length + 1).padStart(3, '0')}`;
-    
+
     const newOrder: OrderRequest = {
       id: `ord-${Date.now()}`,
       reference: newRef,
@@ -159,7 +185,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const submitProblemReport = (equipmentId: string, serialNumber: string, problemType: any, description: string, urgency: any) => {
     const eq = products.find(p => p.id === equipmentId);
     const newRef = `SAV-2026-${String(problems.length + 1).padStart(3, '0')}`;
-    
+
     const newReport: ProblemReport = {
       id: `prob-${Date.now()}`,
       reference: newRef,
@@ -181,12 +207,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newRef;
   };
 
-  const addProduct = (productData: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...productData,
-      id: `prod-${Date.now()}`,
-    };
-    setProducts(prev => [newProduct, ...prev]);
+  const addProduct = async (productData: Omit<Product, 'id'>) => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/products`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to create product');
+    }
+
+    const result = await response.json();
+
+    console.log('Product created:', result.data);
   };
 
   const updateProduct = (updated: Product) => {
