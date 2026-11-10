@@ -133,7 +133,7 @@ export function ProductDetailClient({ id }: { id: string }) {
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-contain p-4"
+                className="w-full h-full object-contain p-5"
               />
             </div>
           </div>
@@ -273,11 +273,14 @@ export function ProductDetailClient({ id }: { id: string }) {
                   key={item.id}
                   className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-2xl hover:border-blue-200 transition-all duration-300 flex flex-col group"
                 >
-                  <Link href={`/catalogue/${item.id}`} className={`block h-48 overflow-hidden bg-slate-100 ${FOCUS}`}>
+                  <Link
+                    href={`/catalogue/${item.id}`}
+                    className="block h-56 overflow-hidden bg-white"
+                  >
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      className="w-full h-full object-contain p-5 group-hover:scale-105 transition-transform duration-500"
                     />
                   </Link>
                   <div className="p-6 flex-1 flex flex-col justify-between gap-4">
