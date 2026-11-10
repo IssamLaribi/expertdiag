@@ -15,6 +15,7 @@ import {
     Truck,
     Headset,
 } from 'lucide-react';
+import { INITIAL_DOMAINS } from '@/data/mockData';
 
 /* -------------------------------------------------------------------------- */
 /*  Static content                                                            */
@@ -205,7 +206,7 @@ function PhotoSlider({ photos }: { photos: { src: string; alt: string }[] }) {
 /* -------------------------------------------------------------------------- */
 
 export default function HomePage() {
-    const { products, domains } = useApp();
+    const { products } = useApp();
 
     const featuredProducts = products.filter((p) => p.visible).slice(0, 4);
 
@@ -300,11 +301,11 @@ export default function HomePage() {
                     action={{ href: '/catalogue', label: 'Explorer tout le catalogue' }}
                 />
 
-                {domains.length === 0 ? (
+                {INITIAL_DOMAINS.length === 0 ? (
                     <EmptyState message="Les domaines de spécialité seront bientôt disponibles." />
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-                        {domains.map((dom) => (
+                        {INITIAL_DOMAINS.map((dom) => (
                             <Link
                                 key={dom.id}
                                 href={`/catalogue?domain=${encodeURIComponent(dom.name)}`}
