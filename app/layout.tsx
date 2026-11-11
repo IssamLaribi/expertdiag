@@ -1,40 +1,20 @@
-'tsx'
-'use client';
+import type { Metadata } from 'next';
+import { Geist } from 'next/font/google';
+import { AppShell } from '@/components/AppShell';
+import './globals.css';
 
-import React, { useState } from 'react';
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { AppProvider } from "@/context/AppContext";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { CartDrawer } from "@/components/CartDrawer";
+const geist = Geist({ variable: '--font-geist', subsets: ['latin'] });
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+export const metadata: Metadata = {
+  title: 'Expert Diagnostic | Matériel de laboratoire',
+  description: 'Catalogue de réactifs, équipements et consommables de laboratoire. Demandes de devis et service après-vente.',
+};
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [cartOpen, setCartOpen] = useState(false);
-
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
-        <AppProvider>
-          <Header onOpenCart={() => setCartOpen(true)} />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
-        </AppProvider>
+    <html lang="fr" className={geist.variable}>
+      <body>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
