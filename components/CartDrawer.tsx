@@ -183,7 +183,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     <select
                       value={wilaya}
                       onChange={(e) => setWilaya(e.target.value)}
-                      className="w-full text-sm border border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full text-sm border text-black border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
                     >
                       {ALGERIAN_WILAYAS.map(w => (
                         <option key={w} value={w}>{w}</option>
@@ -197,7 +197,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                       value={commune}
                       onChange={(e) => setCommune(e.target.value)}
                       required
-                      className="w-full text-sm border border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full text-sm border text-black border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
                 </div>
@@ -209,18 +209,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     required
-                    className="w-full text-sm border border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full text-sm border text-black border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Commentaire optionnel</label>
+                  <label className="block  text-xs font-medium text-slate-700 mb-1">Commentaire optionnel</label>
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="Instructions particulières, horaires de réception..."
                     rows={2}
-                    className="w-full text-sm border border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                    className="w-full text-sm text-black border border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                   />
                 </div>
 
