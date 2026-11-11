@@ -81,7 +81,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Lavette de cuvettes automatique avec station de lavage préchauffée',
       'Consommation d\'eau ultra-faible (< 5L/heure)'
     ],
-    image: 'https://5.imimg.com/data5/SELLER/Default/2022/7/WT/XN/TE/1372593/bs-240-chemistry-analyzer5-500x500.jpg',
+    image: '/products/bs-240.jpg',
     status: 'available',
     visible: true,
     priceEstimate: 'Sur Demande de Devis'
@@ -101,7 +101,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Écran tactile couleur intuitif intégré avec logiciel multilingue',
       'Validation automatique intégrée'
     ],
-    image: 'https://www.blockscientific.com/web/image/product.image/2625/image_1024/Sysmex%20XN%20550%20Automated%20Hematology%20Analyzer?unique=15f4b27',
+    image: '/products/xn-550.png',
     status: 'available',
     visible: true,
     priceEstimate: 'Sur Demande de Devis'
