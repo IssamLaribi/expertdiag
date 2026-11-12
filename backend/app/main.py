@@ -1,106 +1,47 @@
-from fastapi import FastAPI, HTTPException
-from app.database import supabase
-from app.models.product import ProductCreate
+import os
+import sqlite3
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from postgrest.exceptions import APIError
 
-app = FastAPI(title="Expert Diagnostic API", version="1.0.0")
+from app import catalogue, intake
+from app.database import initialize_local_database, supabase
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    if supabase is None:
+        initialize_local_database()
+    yield
+
+
+app = FastAPI(title="Expert Diagnostic API", version="1.0.0", lifespan=lifespan)
+origins = os.getenv("FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[origin.strip() for origin in origins.split(",") if origin.strip()],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type"],
 )
+app.include_router(catalogue.router)
+app.include_router(intake.router)
 
 
 @app.get("/")
 def root():
     return {"message": "Expert Diagnostic API is running!"}
 
-@app.get("/products")
-def get_products():
-    try:
-        response = supabase.table("products").select("*").execute()
-        return {"success": True, "data": response.data}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/products", status_code=201)
-def create_product(product: ProductCreate):
-    try:
-        product_data = {
-            "name": product.name.strip(),
-            "reference": product.reference.strip().lower(),
-            "type": product.type,
-            "brand": product.brand,
-            "domain": product.domain,
-            "description": product.description.strip(),
-            "features": product.features,
-            "image": product.image,
-            "status": product.status,
-            "expected_return_date": (
-                product.expectedReturnDate.isoformat()
-                if product.expectedReturnDate
-                else None
-            ),
-            "note": product.note,
-            "visible": product.visible,
-            "price_estimate": product.priceEstimate,
-        }
+@app.exception_handler(sqlite3.IntegrityError)
+async def sqlite_conflict(_: Request, __: sqlite3.IntegrityError):
+    return JSONResponse({"detail": "Cette référence existe déjà."}, status_code=409)
 
-        response = supabase.table("products").insert(product_data).execute()
 
-        return {
-            "success": True,
-            "message": "Product created successfully!",
-            "data": response.data[0],
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.put("/products/{product_id}")
-def update_product(product_id: str, product: ProductCreate):
-    try:
-        product_data = {
-            "name": product.name.strip(),
-            "reference": product.reference.strip().lower(),
-            "type": product.type,
-            "brand": product.brand,
-            "domain": product.domain,
-            "description": product.description.strip(),
-            "features": product.features,
-            "image": product.image,
-            "status": product.status,
-            "expected_return_date": (
-                product.expectedReturnDate.isoformat()
-                if product.expectedReturnDate
-                else None
-            ),
-            "note": product.note,
-            "visible": product.visible,
-            "price_estimate": product.priceEstimate,
-        }
-
-        response = supabase.table("products").update(product_data).eq("id", product_id).execute()
-
-        return {
-            "success": True,
-            "message": "Product updated successfully!",
-            "data": response.data[0] if response.data else {},
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.delete("/products/{product_id}")
-def delete_product(product_id: str):
-    try:
-        response = supabase.table("products").delete().eq("id", product_id).execute()
-        return {"success": True, "message": "Product deleted successfully!", "data": response.data}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+@app.exception_handler(APIError)
+async def database_error(_: Request, error: APIError):
+    if error.code == "23505":
+        return JSONResponse({"detail": "Cette référence existe déjà."}, status_code=409)
+    return JSONResponse({"detail": "Le service de données est indisponible. Réessayez."}, status_code=502)
