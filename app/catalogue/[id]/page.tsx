@@ -1,19 +1,22 @@
-'tsx'
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 import { INITIAL_PRODUCTS } from '@/data/mockData';
 import { ProductDetailClient } from '@/components/ProductDetailClient';
 
+type ProductPageProps = { params: Promise<{ id: string }> };
+
 export function generateStaticParams() {
-  return INITIAL_PRODUCTS.map((product) => ({
-    id: product.id,
-  }));
+  return INITIAL_PRODUCTS.map(({ id }) => ({ id }));
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
+async function ProductRoute({ params }: ProductPageProps) {
+  const { id } = await params;
+  return <ProductDetailClient id={id} />;
+}
+
+export default function ProductDetailPage({ params }: ProductPageProps) {
   return (
-    <Suspense fallback={<div className="p-20 text-center text-slate-500">Chargement du produit...</div>}>
-      <ProductDetailClient id={resolvedParams.id} />
+    <Suspense fallback={<p className="site-width py-8 text-sm text-slate-600">Chargement du produit…</p>}>
+      <ProductRoute params={params} />
     </Suspense>
   );
 }
