@@ -1,9 +1,10 @@
 'tsx'
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Product, Domain, Brand, DeliveryOption, OrderRequest, ProblemReport, Customer } from '@/types';
-import { INITIAL_PRODUCTS, INITIAL_DOMAINS, INITIAL_BRANDS, INITIAL_DELIVERY_OPTIONS, INITIAL_ORDERS, INITIAL_PROBLEMS } from '@/data/mockData';
+import { normalizeCatalogueText, productLabels } from '@/lib/catalogue';
+import { INITIAL_PRODUCTS, INITIAL_DOMAINS, INITIAL_DELIVERY_OPTIONS, INITIAL_ORDERS, INITIAL_PROBLEMS } from '@/data/mockData';
 
 export type UserRole = 'visitor' | 'customer' | 'admin';
 
@@ -18,6 +19,7 @@ interface AppContextType {
   currentCustomer: Customer;
   setCurrentCustomer: React.Dispatch<React.SetStateAction<Customer>>;
   products: Product[];
+  productsLoading: boolean;
   domains: Domain[];
   brands: Brand[];
   deliveryOptions: DeliveryOption[];
@@ -56,8 +58,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [role, setRole] = useState<UserRole>('visitor');
   const [currentCustomer, setCurrentCustomer] = useState<Customer>(DEFAULT_CUSTOMER);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [domains, setDomains] = useState<Domain[]>([]);
-  const [brands, setBrands] = useState<Brand[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const domains = useMemo(() => productLabels(products, 'domain').map((name) => ({
+    id: normalizeCatalogueText(name),
+    name,
+    image: INITIAL_DOMAINS.find((domain) => domain.name === name)?.image ?? '',
+  })), [products]);
+  const brands = useMemo(() => productLabels(products, 'brand').map((name) => ({
+    id: normalizeCatalogueText(name),
+    name,
+  })), [products]);
   const [deliveryOptions] = useState<DeliveryOption[]>(INITIAL_DELIVERY_OPTIONS);
   const [orders, setOrders] = useState<OrderRequest[]>(INITIAL_ORDERS);
   const [problems, setProblems] = useState<ProblemReport[]>(INITIAL_PROBLEMS);
@@ -123,6 +133,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch (error) {
         console.error('Error fetching products from API:', error);
+      } finally {
+        setProductsLoading(false);
       }
     };
 
@@ -400,6 +412,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentCustomer,
         setCurrentCustomer,
         products,
+        productsLoading,
         domains,
         brands,
         deliveryOptions,

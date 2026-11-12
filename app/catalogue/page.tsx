@@ -1,287 +1,144 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { Search, Filter, RotateCcw, CheckCircle2, AlertTriangle, Microscope, Package } from 'lucide-react';
+import { ProductImage } from '@/components/ProductImage';
+import { normalizeCatalogueText, productLabels, PRODUCT_TYPE_LABELS } from '@/lib/catalogue';
 
-function CatalogueContent() {
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get('q') || '';
-  const initialDomain = searchParams.get('domain') || 'all';
+function CatalogueContent({ initialQuery, initialDomain }: { initialQuery: string; initialDomain: string }) {
+  const { products, productsLoading } = useApp();
+  const [query, setQuery] = useState(initialQuery);
+  const [domain, setDomain] = useState(initialDomain);
+  const [brand, setBrand] = useState('');
+  const [type, setType] = useState('');
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const { products, domains, brands, addToCart } = useApp();
+  const visibleProducts = products.filter((product) => product.visible);
+  const domains = productLabels(visibleProducts, 'domain');
+  const brands = productLabels(visibleProducts, 'brand');
+  const domainValue = domains.find((value) => normalizeCatalogueText(value) === normalizeCatalogueText(domain));
+  const terms = normalizeCatalogueText(query).split(/\s+/).filter(Boolean);
+  const filtered = visibleProducts.filter((product) => {
+    if (domain && normalizeCatalogueText(product.domain) !== normalizeCatalogueText(domain)) return false;
+    if (brand && normalizeCatalogueText(product.brand) !== normalizeCatalogueText(brand)) return false;
+    if (type && product.type !== type) return false;
+    if (availableOnly && product.status !== 'available') return false;
+    const searchable = normalizeCatalogueText([product.name, product.reference, product.brand, product.domain, product.description].join(' '));
+    return terms.every((term) => searchable.includes(term));
+  });
+  const activeFilters = Number(Boolean(domain)) + Number(Boolean(brand)) + Number(Boolean(type)) + Number(availableOnly);
 
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [selectedDomain, setSelectedDomain] = useState(initialDomain);
-  const [selectedBrand, setSelectedBrand] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
-
-  // Filter products according to SRS requirements (FR-1 to FR-9)
-  const filteredProducts = useMemo(() => {
-    return products.filter(product => {
-      if (!product.visible) return false;
-
-      // Domain filter (FR-3, FR-5)
-      if (selectedDomain !== 'all' && product.domain !== selectedDomain) {
-        return false;
-      }
-
-      // Brand filter (FR-4, FR-5)
-      if (selectedBrand !== 'all' && product.brand !== selectedBrand) {
-        return false;
-      }
-
-      // Type filter
-      if (selectedType !== 'all' && product.type !== selectedType) {
-        return false;
-      }
-
-      // Availability filter (FR-8)
-      if (onlyAvailable && product.status !== 'available') {
-        return false;
-      }
-
-      // Keyword search (FR-6: searches name, brand, reference)
-      if (searchQuery.trim() !== '') {
-        const q = searchQuery.toLowerCase();
-        const matchName = product.name.toLowerCase().includes(q);
-        const matchBrand = product.brand.toLowerCase().includes(q);
-        const matchRef = product.reference.toLowerCase().includes(q);
-        const matchDesc = product.description.toLowerCase().includes(q);
-        if (!matchName && !matchBrand && !matchRef && !matchDesc) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [products, selectedDomain, selectedBrand, selectedType, onlyAvailable, searchQuery]);
-
-  const resetFilters = () => {
-    setSearchQuery('');
-    setSelectedDomain('all');
-    setSelectedBrand('all');
-    setSelectedType('all');
-    setOnlyAvailable(false);
-  };
+  function resetFilters() {
+    setQuery('');
+    setDomain('');
+    setBrand('');
+    setType('');
+    setAvailableOnly(false);
+  }
 
   return (
-    <div className="max-w-[1760px] mx-auto px-6 sm:px-10 lg:px-16 2xl:px-20 py-10 space-y-8 bg-white">
-
-      {/* Page Header */}
-      <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Catalogue Officiel</span>
-          <h1 className="text-3xl font-extrabold text-slate-900 mt-1">Réactifs, Équipements & Consommables</h1>
-          <p className="text-sm text-slate-500 mt-1">Recherchez et filtrez l'ensemble des solutions de diagnostic accréditées.</p>
+    <>
+      <div className="mt-5 flex max-w-2xl gap-2">
+        <div className="relative min-w-0 flex-1">
+          <label htmlFor="catalogue-search" className="sr-only">Chercher un produit</label>
+          <Search size={17} className="pointer-events-none absolute top-3.5 left-3 text-slate-500" aria-hidden="true" />
+          <input id="catalogue-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nom, marque ou référence" className="field-input min-h-11 pl-9" />
         </div>
-        <div className="bg-blue-50 text-blue-800 px-4 py-2 rounded-xl text-sm font-semibold border border-blue-100 flex items-center gap-2 self-start md:self-auto">
-          <Package className="w-4 h-4 text-blue-600" />
-          <span>{filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}</span>
-        </div>
+        <button type="button" onClick={() => setFiltersOpen(!filtersOpen)} aria-expanded={filtersOpen} aria-controls="catalogue-filters" className="button-secondary shrink-0 lg:hidden">
+          <SlidersHorizontal size={16} aria-hidden="true" />
+          Filtres{activeFilters > 0 ? ` (${activeFilters})` : ''}
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
-        {/* Sidebar Filters */}
-        <div className="lg:col-span-1 space-y-6 bg-white p-6 rounded-2xl border border-slate-200 h-fit shadow-sm">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-            <h3 className="font-bold text-slate-900 flex items-center gap-2">
-              <Filter className="w-4 h-4 text-blue-600" />
-              Filtres Avancés
-            </h3>
-            <button
-              onClick={resetFilters}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Réinitialiser
-            </button>
+      <div className="mt-5 grid items-start gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-8">
+        <aside id="catalogue-filters" aria-label="Filtres du catalogue" className={`${filtersOpen ? 'block' : 'hidden'} rounded-lg border border-line bg-paper p-4 lg:block`}>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold">Filtres</h2>
+            <button type="button" onClick={resetFilters} className="text-xs font-semibold text-brand underline-offset-4 hover:underline">Réinitialiser</button>
           </div>
-
-          {/* Keyword Search (FR-6) */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Recherche par mot-clé</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Nom, marque, référence..."
-                className="w-full pl-9 pr-3 py-2 text-sm text-black bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Domain / Specialty Filter (FR-3, FR-5) */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Domaine / Spécialité</label>
-            <select
-              value={selectedDomain}
-              onChange={(e) => setSelectedDomain(e.target.value)}
-              className="w-full py-2 px-3 text-sm text-black bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="all">Tous les domaines</option>
-              {domains.map(d => (
-                <option key={d.id} value={d.name}>{d.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Brand Filter (FR-4, FR-5) */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Marque / Fabricant</label>
-            <select
-              value={selectedBrand}
-              onChange={(e) => setSelectedBrand(e.target.value)}
-              className="w-full py-2 px-3 text-sm text-black bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="all">Toutes les marques</option>
-              {brands.map(b => (
-                <option key={b.id} value={b.name}>{b.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Product Type Filter */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Type de Produit</label>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full py-2 px-3 text-sm text-black bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="all">Tous les types</option>
-              <option value="equipment">Équipement / Analyseur</option>
-              <option value="reagent">Réactif</option>
-              <option value="consumable">Consommable</option>
-            </select>
-          </div>
-
-          {/* Availability Filter (FR-8) */}
-          <div className="pt-2 border-t border-slate-200">
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={onlyAvailable}
-                onChange={(e) => setOnlyAvailable(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-slate-300"
-              />
-              <span className="text-sm font-medium text-slate-700">Disponibles uniquement</span>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <label className="grid gap-1.5 text-sm font-medium">
+              Spécialité
+              <select value={domainValue ?? domain} onChange={(event) => setDomain(event.target.value)} className="field-input">
+                <option value="">Toutes les spécialités</option>
+                {domain && !domainValue && <option value={domain}>{domain}</option>}
+                {domains.map((value) => <option key={value}>{value}</option>)}
+              </select>
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium">
+              Marque
+              <select value={brand} onChange={(event) => setBrand(event.target.value)} className="field-input">
+                <option value="">Toutes les marques</option>
+                {brands.map((value) => <option key={value}>{value}</option>)}
+              </select>
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium">
+              Type de produit
+              <select value={type} onChange={(event) => setType(event.target.value)} className="field-input">
+                <option value="">Tous les types</option>
+                {Object.entries(PRODUCT_TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+            </label>
+            <label className="flex min-h-11 items-center gap-2 text-sm md:min-h-0">
+              <input className="size-4 accent-brand" type="checkbox" checked={availableOnly} onChange={(event) => setAvailableOnly(event.target.checked)} />
+              Disponibles uniquement
             </label>
           </div>
-        </div>
+        </aside>
 
-        {/* Product Grid */}
-        <div className="lg:col-span-3">
-          {filteredProducts.length === 0 ? (
-            /* Zero results state (FR-7) */
-            <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-4">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto">
-                <AlertTriangle className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900">Aucun produit ne correspond à vos critères</h3>
-              <p className="text-sm text-slate-500 max-w-md mx-auto">
-                Essayez de modifier vos filtres de recherche, de changer de domaine ou de réinitialiser la recherche pour voir tous les produits.
-              </p>
-              <button
-                onClick={resetFilters}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-md transition inline-flex items-center gap-2"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Réinitialiser les filtres
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => {
-                const available = product.status === 'available';
-                return (
-                  <article
-                    key={product.id}
-                    className="bg-white border border-slate-200 rounded-3xl overflow-hidden hover:shadow-2xl hover:border-blue-200 transition-all duration-300 flex flex-col group"
-                  >
-                    <Link
-                      href={`/catalogue/${product.id}`}
-                      className="block h-56 overflow-hidden bg-white"
-                    >
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-contain p-5 group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </Link>
-
-                    <div className="p-6 flex-1 flex flex-col justify-between gap-5">
-                      <div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider line-clamp-1">
-                            {product.domain}
-                          </span>
-                          <span
-                            className={`flex items-center gap-1.5 text-[11px] font-semibold shrink-0 ${available ? 'text-emerald-700' : 'text-rose-700'
-                              }`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${available ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                            {available ? 'Disponible' : 'Indisponible'}
-                          </span>
-                        </div>
-
-                        <h3 className="font-bold text-slate-900 text-base mt-2 line-clamp-1">
-                          <Link href={`/catalogue/${product.id}`} className="hover:text-blue-600 transition">
-                            {product.name}
-                          </Link>
-                        </h3>
-
-                        <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
-                          {product.description}
-                        </p>
-
-                        {product.status === 'unavailable' && product.expectedReturnDate && (
-                          <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-                            <strong>Retour estimé :</strong> {product.expectedReturnDate}
-                            {product.note && <div className="text-amber-700 mt-0.5">{product.note}</div>}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="pt-4 border-t border-slate-200/60 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] text-slate-400 font-bold uppercase block">
-                            Tarif indicatif
-                          </span>
-                          <span className="text-sm font-bold text-slate-900">
-                            {product.priceEstimate || 'Sur devis'}
-                          </span>
-                        </div>
-                        <Link
-                          href={`/catalogue/${product.id}`}
-                          className="px-4 py-2 bg-slate-900 hover:bg-blue-600 text-white font-semibold text-xs rounded-xl transition"
-                        >
-                          Détails
-                        </Link>
-                      </div>
+        <section aria-label="Produits" className="min-w-0">
+          <p aria-live="polite" className="mb-3 text-sm text-slate-600">
+            {productsLoading && filtered.length === 0 ? 'Chargement du catalogue…' : `${filtered.length} produit${filtered.length > 1 ? 's' : ''}`}
+          </p>
+          {filtered.length > 0 ? (
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {filtered.map((product) => (
+                <li key={product.id} className="rounded-lg border border-line transition-colors hover:border-brand">
+                  <Link href={`/catalogue/${encodeURIComponent(product.id)}`} className="group grid h-full grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-3 rounded-lg p-3 sm:grid-cols-1 sm:items-start">
+                    <ProductImage src={product.image} alt="" className="h-25 rounded-md border border-line sm:h-36" />
+                    <div>
+                      <p className="text-xs text-slate-600">{product.brand} · {product.reference}</p>
+                      <h2 className="mt-1 text-sm leading-snug font-semibold group-hover:underline">{product.name}</h2>
+                      <p className={`mt-2 text-xs font-medium ${product.status === 'available' ? 'text-emerald-800' : 'text-slate-600'}`}>
+                        {product.status === 'available' ? 'Disponible' : 'Indisponible'}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-600">{product.priceEstimate || 'Sur devis'}</p>
                     </div>
-                  </article>
-                );
-              })}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : !productsLoading && (
+            <div className="space-y-2 rounded-lg border border-line p-5">
+              <h2 className="font-semibold">Aucun produit trouvé</h2>
+              <p className="text-sm text-slate-600">Essayez une autre référence ou supprimez un filtre.</p>
+              <button type="button" onClick={resetFilters} className="button-secondary mt-2">Effacer la recherche</button>
             </div>
           )}
-        </div>
-
+        </section>
       </div>
-    </div>
+    </>
   );
+}
+
+function CatalogueSearch() {
+  const params = useSearchParams();
+  const query = params.get('q') ?? '';
+  const domain = params.get('domain') ?? '';
+  return <CatalogueContent key={params.toString()} initialQuery={query} initialDomain={domain === 'all' ? '' : domain} />;
 }
 
 export default function CataloguePage() {
   return (
-    <Suspense fallback={<div className="p-20 text-center text-slate-500">Chargement du catalogue...</div>}>
-      <CatalogueContent />
-    </Suspense>
+    <div className="site-width py-7 sm:py-10">
+      <h1 className="page-title">Catalogue</h1>
+      <Suspense fallback={<p className="mt-6 text-sm text-slate-600">Chargement du catalogue…</p>}>
+        <CatalogueSearch />
+      </Suspense>
+    </div>
   );
 }
