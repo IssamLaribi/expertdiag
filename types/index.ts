@@ -50,6 +50,16 @@ export interface Customer {
   commune: string;
 }
 
+export type QuoteDetails = Omit<Customer, 'id'> & {
+  deliveryOptionId: string;
+  comment: string;
+};
+
+export interface SubmissionReceipt {
+  reference: string;
+  createdAt: string;
+}
+
 export interface OrderItem {
   productId: string;
   productName: string;

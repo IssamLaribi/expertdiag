@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## API locale
+
+Depuis la racine du projet, lancez l’API dans un deuxième terminal. Elle démarre avec les produits d’exemple et conserve les demandes dans `backend/.expertdiag.sqlite3`. Le site utilise `http://127.0.0.1:8000` par défaut.
+
+```bash
+python3 -m venv /tmp/expertdiag-venv
+/tmp/expertdiag-venv/bin/pip install -r backend/requirements.txt
+cd backend
+/tmp/expertdiag-venv/bin/python -m uvicorn app.main:app --reload
+```
+
+Pour Supabase, appliquez `backend/schema.sql` au projet qui contient déjà `products`, puis configurez `SUPABASE_URL` et `SUPABASE_SECRET_KEY` côté API. Les demandes sont disponibles dans `intake_requests`. Définissez `NEXT_PUBLIC_API_URL` côté site et `FRONTEND_ORIGINS` côté API si vous changez leurs adresses.
