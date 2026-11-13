@@ -107,3 +107,15 @@ def store_submission(kind: str, submission: IntakeSubmission):
 @router.post("/quote-requests", status_code=201)
 def create_quote(submission: QuoteSubmission):
     return store_submission("quote", submission)
+
+
+class ContactSubmission(IntakeSubmission):
+    subject: Literal["quote", "product", "availability", "sav", "partnership", "other"]
+    message: str = Field(min_length=10, max_length=3000)
+    productName: str = Field(default="", max_length=180)
+    productReference: str = Field(default="", max_length=100)
+
+
+@router.post("/contact-messages", status_code=201)
+def create_contact_message(submission: ContactSubmission):
+    return store_submission("contact", submission)
