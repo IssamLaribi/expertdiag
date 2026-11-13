@@ -1,210 +1,156 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Clock } from 'lucide-react';
+import { Suspense, useRef, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Mail, Phone } from 'lucide-react';
+import { jsonRequest, requestJson } from '@/lib/api';
+import type { SubmissionReceipt } from '@/types';
 
-/* -------------------------------------------------------------------------- */
-/*  Constants                                                                 */
-/* -------------------------------------------------------------------------- */
+const SUBJECTS = {
+  quote: 'Demande de devis',
+  product: 'Information sur un produit',
+  availability: 'Disponibilité d’un produit',
+  sav: 'Service après-vente',
+  partnership: 'Partenariat',
+  other: 'Autre demande',
+} as const;
 
-const CONTAINER = 'max-w-[1760px] mx-auto px-6 sm:px-10 lg:px-16 2xl:px-20';
-const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2';
+type Subject = keyof typeof SUBJECTS;
 
-/* Input text is black, as on the admin forms */
-const INPUT =
-  'w-full text-sm text-black placeholder:text-slate-400 border border-slate-300 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition';
+const CONTACT_FIELDS = [
+  { field: 'contactPerson', label: 'Votre nom', type: 'text', autoComplete: 'name', minLength: 2, maxLength: 120 },
+  { field: 'laboratoryName', label: 'Laboratoire ou société', type: 'text', autoComplete: 'organization', minLength: 2, maxLength: 160 },
+  { field: 'email', label: 'Adresse e-mail', type: 'email', autoComplete: 'email', minLength: 3, maxLength: 254 },
+  { field: 'phone', label: 'Téléphone', type: 'tel', autoComplete: 'tel', minLength: 6, maxLength: 40 },
+] as const;
 
-const CONTACT_ITEMS = [
-  {
-    icon: MapPin,
-    label: 'Siège social & showroom',
-    value: 'Kouba, Alger, Algérie',
-  },
-  {
-    icon: Phone,
-    label: 'Téléphone / Fax',
-    value: '+213 (0) 23 45 67 89',
-    href: 'tel:+21323456789',
-  },
-  {
-    icon: Mail,
-    label: 'Adresse e-mail',
-    value: 'contact@expert-diagnostic.dz',
-    href: 'mailto:contact@expert-diagnostic.dz',
-  },
-  {
-    icon: Clock,
-    label: 'Support technique',
-    value: 'Dimanche - Jeudi (8h - 17h)',
-  },
-];
+function ContactForm({ initialSubject, product, reference }: { initialSubject: Subject; product: string; reference: string }) {
+  const [draft, setDraft] = useState({
+    contactPerson: '', laboratoryName: '', email: '', phone: '',
+    subject: initialSubject,
+    message: initialSubject === 'availability' && (product || reference)
+      ? 'Bonjour, pouvez-vous m’indiquer quand ce produit sera disponible ?'
+      : '',
+  });
+  const request = useRef<{ key: string; id: string } | null>(null);
+  const inFlight = useRef(false);
+  const [sending, setSending] = useState(false);
+  const [receipt, setReceipt] = useState<SubmissionReceipt>();
+  const [error, setError] = useState('');
+  const hasProduct = draft.subject === 'availability' && Boolean(product || reference);
 
-const SUBJECTS = [
-  'Demande de devis',
-  'Information produit',
-  'Service après-vente (SAV)',
-  'Partenariat',
-  'Autre demande',
-];
+  async function send(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setSending(true);
+    setError('');
 
-const EMPTY_FORM = { name: '', email: '', phone: '', lab: '', subject: SUBJECTS[0], message: '' };
+    const details = {
+      contactPerson: draft.contactPerson.trim(),
+      laboratoryName: draft.laboratoryName.trim(),
+      email: draft.email.trim(),
+      phone: draft.phone.trim(),
+      subject: draft.subject,
+      message: draft.message.trim(),
+      productName: hasProduct ? product : '',
+      productReference: hasProduct ? reference : '',
+    };
+    try {
+      const key = JSON.stringify(details);
+      if (request.current?.key !== key) request.current = { key, id: crypto.randomUUID() };
+      setReceipt(await requestJson<SubmissionReceipt>('/contact-messages', jsonRequest('POST', {
+        ...details, submissionId: request.current.id,
+      })));
+      request.current = null;
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Impossible d’envoyer votre message.');
+    } finally {
+      inFlight.current = false;
+      setSending(false);
+    }
+  }
 
-/* -------------------------------------------------------------------------- */
-/*  Page                                                                      */
-/* -------------------------------------------------------------------------- */
-
-export default function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState(EMPTY_FORM);
-
-  const update = (key: keyof typeof EMPTY_FORM, value: string) =>
-    setFormData((f) => ({ ...f, [key]: value }));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
-
-  const reset = () => {
-    setFormData(EMPTY_FORM);
-    setSubmitted(false);
-  };
+  if (receipt) {
+    return (
+      <div role="status" className="space-y-3 rounded-lg border border-line p-5 sm:p-6">
+        <h2 className="text-xl font-semibold">Message reçu</h2>
+        <p className="text-sm text-slate-700">Référence <strong>{receipt.reference}</strong></p>
+        <p className="text-sm text-slate-700">Notre équipe vous répondra aux coordonnées indiquées.</p>
+        <button type="button" className="button-secondary" onClick={() => {
+          setDraft((previous) => ({ ...previous, subject: 'other', message: '' }));
+          setReceipt(undefined);
+        }}>Écrire un autre message</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white selection:bg-blue-600 selection:text-white">
-      {/* ------------------------------ Page header ----------------------------- */}
-      <section className="relative bg-slate-50 border-b border-slate-200/60 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-60 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] [background-size:48px_48px]" />
-        <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
+    <form onSubmit={send} className="space-y-4 rounded-lg border border-line p-5 sm:p-6">
+      <h2 className="text-xl font-semibold">Écrivez-nous</h2>
+      <fieldset disabled={sending} className="grid gap-4 sm:grid-cols-2">
+        {CONTACT_FIELDS.map(({ field, label, type, autoComplete, minLength, maxLength }) => (
+          <label key={field} className="grid min-w-0 gap-1.5 text-sm font-medium">
+            {label}
+            <input
+              required name={field} type={type} autoComplete={autoComplete} minLength={minLength} maxLength={maxLength}
+              value={draft[field]} className="field-input"
+              onChange={(event) => setDraft((previous) => ({ ...previous, [field]: event.target.value }))}
+            />
+          </label>
+        ))}
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Sujet
+          <select className="field-input" name="subject" value={draft.subject}
+            onChange={(event) => setDraft((previous) => ({ ...previous, subject: event.target.value as Subject }))}>
+            {Object.entries(SUBJECTS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+        {hasProduct && (
+          <p className="rounded-md bg-paper p-3 text-sm text-slate-700 sm:col-span-2">
+            {[product, reference && `réf. ${reference}`].filter(Boolean).join(' · ')}
+          </p>
+        )}
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+          Votre message
+          <textarea required name="message" rows={5} minLength={10} maxLength={3000} value={draft.message} className="field-input"
+            onChange={(event) => setDraft((previous) => ({ ...previous, message: event.target.value }))} />
+        </label>
+      </fieldset>
+      {error && <p role="alert" className="text-sm text-rose-800">{error}</p>}
+      <button type="submit" className="button-primary" disabled={sending}>{sending ? 'Envoi en cours…' : 'Envoyer le message'}</button>
+    </form>
+  );
+}
 
-        <div className={`${CONTAINER} relative py-16 lg:py-24`}>
-          <div className="max-w-3xl space-y-5">
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-[2px] bg-blue-600" />
-              <span className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em]">Contactez-nous</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tighter text-slate-900 leading-[1.05]">
-              Une question, un devis ou un <span className="text-blue-600">besoin SAV ?</span>
-            </h1>
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-              Notre équipe commerciale et technique vous répond dans les plus brefs délais.
-            </p>
-          </div>
-        </div>
-      </section>
+function ContactQuery() {
+  const params = useSearchParams();
+  const subject = params.get('subject');
+  const initialSubject = subject && Object.hasOwn(SUBJECTS, subject) ? subject as Subject : 'other';
+  const product = (params.get('product') ?? '').trim().slice(0, 180);
+  const reference = (params.get('reference') ?? '').trim().slice(0, 100);
+  return <ContactForm key={params.toString()} initialSubject={initialSubject} product={product} reference={reference} />;
+}
 
-      {/* --------------------------------- Content ------------------------------- */}
-      <section className={`${CONTAINER} py-16 lg:py-24`}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-          {/* Contact details */}
-          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-32">
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Coordonnées <span className="text-blue-600">officielles</span>
-              </h2>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Retrouvez-nous au siège ou joignez directement nos équipes.
-              </p>
-            </div>
-
-            <ul className="bg-slate-50/70 border border-slate-200 rounded-3xl divide-y divide-slate-200">
-              {CONTACT_ITEMS.map(({ icon: Icon, label, value, href }) => (
-                <li key={label} className="flex items-start gap-4 p-6">
-                  <span className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-600/20">
-                    <Icon className="w-5 h-5" />
-                  </span>
-                  <div>
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-                    {href ? (
-                      <a href={href} className={`text-sm font-semibold text-blue-600 hover:text-blue-800 transition mt-1 block rounded ${FOCUS}`}>
-                        {value}
-                      </a>
-                    ) : (
-                      <p className="text-sm font-semibold text-slate-900 mt-1">{value}</p>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Form */}
-          <div className="lg:col-span-7 bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-xl">
-            {submitted ? (
-              <div className="text-center py-16 space-y-5">
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-9 h-9" />
-                </div>
-                <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Message envoyé avec succès !</h3>
-                <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Merci pour votre message. Un accusé de réception vous a été envoyé et notre équipe commerciale vous contactera rapidement.
-                </p>
-                <button
-                  onClick={reset}
-                  className={`mt-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/25 transition ${FOCUS}`}
-                >
-                  Envoyer un autre message
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Formulaire de contact</h2>
-                  <p className="text-sm text-slate-500">Aucune connexion requise.</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label htmlFor="name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Nom / Contact</label>
-                    <input id="name" type="text" required value={formData.name} onChange={(e) => update('name', e.target.value)} className={INPUT} placeholder="Dr. Nom Prénom" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label htmlFor="lab" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Laboratoire / Établissement</label>
-                    <input id="lab" type="text" required value={formData.lab} onChange={(e) => update('lab', e.target.value)} className={INPUT} placeholder="Laboratoire d'analyses..." />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label htmlFor="email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Adresse e-mail</label>
-                    <input id="email" type="email" required value={formData.email} onChange={(e) => update('email', e.target.value)} className={INPUT} placeholder="contact@labo.dz" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label htmlFor="phone" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Téléphone</label>
-                    <input id="phone" type="tel" required value={formData.phone} onChange={(e) => update('phone', e.target.value)} className={INPUT} placeholder="+213..." />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="subject" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Objet de la demande</label>
-                  <select id="subject" value={formData.subject} onChange={(e) => update('subject', e.target.value)} className={INPUT}>
-                    {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label htmlFor="message" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Votre message / demande</label>
-                  <textarea
-                    id="message"
-                    required
-                    rows={5}
-                    value={formData.message}
-                    onChange={(e) => update('message', e.target.value)}
-                    className={`${INPUT} resize-none`}
-                    placeholder="Précisez votre besoin en réactifs, analyseurs ou maintenance SAV..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className={`w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/25 transition flex items-center justify-center gap-2.5 ${FOCUS}`}
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Envoyer le message</span>
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
+export default function ContactPage() {
+  return (
+    <div className="site-width py-8 sm:py-10">
+      <h1 className="page-title">Contact</h1>
+      <p className="mt-3 text-slate-700">Une question sur une référence, une livraison ou un appareil ?</p>
+      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[1fr_2fr] lg:gap-8">
+        <section aria-label="Coordonnées" className="grid gap-4 rounded-lg border border-line bg-paper p-5 text-sm">
+          <a href="mailto:contact@expert-diagnostic.dz" className="flex items-center gap-3 break-all font-medium text-brand hover:underline">
+            <Mail size={18} className="shrink-0" aria-hidden="true" /> contact@expert-diagnostic.dz
+          </a>
+          <a href="tel:+21323456789" className="flex items-center gap-3 font-medium text-brand hover:underline">
+            <Phone size={18} className="shrink-0" aria-hidden="true" /> +213 (0) 23 45 67 89
+          </a>
+          <p className="text-slate-700">Pour le SAV, indiquez le modèle de l’appareil et son numéro de série.</p>
+        </section>
+        <Suspense fallback={<p className="text-sm text-slate-600">Chargement du formulaire…</p>}>
+          <ContactQuery />
+        </Suspense>
+      </div>
     </div>
   );
 }
