@@ -35,7 +35,7 @@ interface AppContextType {
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   submitOrder: (details: QuoteDetails, submissionId: string) => Promise<SubmissionReceipt>;
-  submitProblemReport: (equipmentId: string, serialNumber: string, problemType: ProblemType, description: string, urgency: UrgencyLevel) => string;
+  submitProblemReport: (equipmentId: string, serialNumber: string, problemType: ProblemType, description: string, urgency: UrgencyLevel, submissionId: string) => Promise<SubmissionReceipt>;
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
@@ -268,29 +268,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return receipt;
   };
 
-  const submitProblemReport = (equipmentId: string, serialNumber: string, problemType: ProblemType, description: string, urgency: UrgencyLevel) => {
-    const eq = products.find(p => p.id === equipmentId);
-    const newRef = `SAV-2026-${String(problems.length + 1).padStart(3, '0')}`;
+  const submitProblemReport = async (
+    equipmentId: string, serialNumber: string, problemType: ProblemType,
+    description: string, urgency: UrgencyLevel, submissionId: string,
+  ) => {
+    const equipment = products.find((product) => product.id === equipmentId && product.type === 'equipment');
+    if (!equipment || !customerSaved) throw new Error('Renseignez votre laboratoire et choisissez un équipement.');
 
-    const newReport: ProblemReport = {
-      id: `prob-${Date.now()}`,
-      reference: newRef,
+    const receipt = await requestJson<SubmissionReceipt>('/contact-messages', jsonRequest('POST', {
+      submissionId,
+      contactPerson: currentCustomer.contactPerson,
+      laboratoryName: currentCustomer.laboratoryName,
+      phone: currentCustomer.phone,
+      email: currentCustomer.email,
+      subject: 'sav',
+      message: description,
+      productName: equipment.name,
+      productReference: equipment.reference,
+      serialNumber,
+      problemType,
+      urgency,
+    }));
+
+    const report: ProblemReport = {
+      id: submissionId,
+      reference: receipt.reference,
       customerId: currentCustomer.id,
       customerName: currentCustomer.contactPerson,
       laboratoryName: currentCustomer.laboratoryName,
       equipmentId,
-      equipmentName: eq ? eq.name : 'Équipement médical',
+      equipmentName: equipment.name,
       serialNumber,
       problemType,
       description,
       urgency,
       photos: [],
       status: 'New',
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      createdAt: receipt.createdAt,
     };
-
-    setProblems(prev => [newReport, ...prev]);
-    return newRef;
+    setProblems((previous) => [report, ...previous.filter((entry) => entry.id !== submissionId)]);
+    return receipt;
   };
 
   const addProduct = async (productData: Omit<Product, 'id'>) => {

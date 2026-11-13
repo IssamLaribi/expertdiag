@@ -114,6 +114,9 @@ class ContactSubmission(IntakeSubmission):
     message: str = Field(min_length=10, max_length=3000)
     productName: str = Field(default="", max_length=180)
     productReference: str = Field(default="", max_length=100)
+    serialNumber: str = Field(default="", max_length=120)
+    problemType: Literal["breakdown", "calibration", "error_message", "other"] | None = None
+    urgency: Literal["normal", "urgent"] | None = None
 
 
 @router.post("/contact-messages", status_code=201)

@@ -11,6 +11,7 @@ const NAVIGATION = [
   { href: '/catalogue', label: 'Catalogue' },
   { href: '/a-propos', label: 'À propos' },
   { href: '/contact', label: 'Contact' },
+  { href: '/client', label: 'Mon espace' },
 ];
 
 export function Header({ onOpenCart }: { onOpenCart: () => void }) {
@@ -40,14 +41,14 @@ export function Header({ onOpenCart }: { onOpenCart: () => void }) {
     <header className="border-b border-line bg-white">
       <div className="site-width flex min-h-17 items-center justify-between gap-2 sm:gap-6">
         <Link href="/" onClick={() => setMenuOpen(false)} className="shrink-0">
-          <Image src="/expert_diagnostic_logo.svg" alt="Expert Diagnostic, accueil" width={184} height={58} className="h-auto w-31 sm:w-43" />
+          <Image src="/expert_diagnostic_logo.svg" alt="Expert Diagnostic, accueil" width={184} height={58} className="h-auto w-24 min-[370px]:w-31 sm:w-43" />
         </Link>
         <nav aria-label="Navigation principale" className="hidden items-center gap-6 text-sm md:flex">
           {navigationLinks()}
         </nav>
         <div className="flex items-center gap-2">
           <button type="button" onClick={onOpenCart} className="button-primary whitespace-nowrap px-2.5 sm:px-4">
-            <ShoppingCart size={16} aria-hidden="true" />
+            <ShoppingCart size={16} className="hidden min-[360px]:block" aria-hidden="true" />
             <span>Ma demande</span>
             <span className="rounded bg-white/20 px-1.5 tabular-nums" aria-label={`${count} articles`}>{count}</span>
           </button>

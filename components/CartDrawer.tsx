@@ -101,7 +101,10 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
             <h3 className="text-xl font-semibold">Demande reçue</h3>
             <p className="text-sm text-slate-700">Référence <strong>{receipt.reference}</strong></p>
             <p className="text-sm text-slate-700">Notre équipe vous répondra aux coordonnées indiquées pour confirmer le prix et la livraison.</p>
-            <button type="button" className="button-secondary mt-2" onClick={close}>Retour au catalogue</button>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <Link href="/client" className="button-primary" onClick={close}>Voir mes demandes</Link>
+              <Link href="/catalogue" className="button-secondary" onClick={close}>Retour au catalogue</Link>
+            </div>
           </div>
         ) : cart.length === 0 ? (
           <div className="space-y-4 p-6">
