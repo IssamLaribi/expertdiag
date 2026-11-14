@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
-import { FOCUS } from '../constants';
 
 export function Field({
   label,
@@ -90,43 +89,41 @@ export function StatCard({
 
 export function Modal({
   title,
-  eyebrow,
   onClose,
   maxWidth = 'max-w-4xl',
   children,
 }: {
   title: string;
-  eyebrow: string;
   onClose: () => void;
   maxWidth?: string;
   children: React.ReactNode;
 }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [onClose]);
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative bg-white rounded-3xl shadow-2xl w-full ${maxWidth} my-8 flex flex-col`}>
-        <div className="flex items-start justify-between gap-4 p-6 sm:p-8 border-b border-slate-200">
-          <div>
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em]">{eyebrow}</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight mt-1">{title}</h3>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Fermer" className={`p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition ${FOCUS}`}>
-            <X className="w-5 h-5" />
+    <dialog
+      ref={dialog}
+      aria-labelledby={titleId}
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+      className={`m-auto w-[calc(100%-2rem)] max-h-dvh overflow-auto rounded-lg border border-line bg-white p-0 text-ink backdrop:bg-slate-950/45 ${maxWidth}`}
+    >
+      <div>
+        <div className="flex items-start justify-between gap-3 border-b border-line p-5 sm:px-8">
+          <h3 id={titleId} className="text-xl font-semibold">{title}</h3>
+          <button type="button" onClick={onClose} aria-label="Fermer" className="button-secondary min-w-11 px-0">
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
         {children}
       </div>
-    </div>
+    </dialog>
   );
 }

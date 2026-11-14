@@ -5,7 +5,7 @@ import type {
   Product, Domain, Brand, DeliveryOption, OrderRequest, ProblemReport, Customer,
   QuoteDetails, SubmissionReceipt, OrderStatus, ProblemStatus, ProblemType, UrgencyLevel,
 } from '@/types';
-import { API_URL, jsonRequest, requestJson } from '@/lib/api';
+import { jsonRequest, requestJson } from '@/lib/api';
 import { normalizeCatalogueText, productLabels } from '@/lib/catalogue';
 import { INITIAL_PRODUCTS, INITIAL_DOMAINS, INITIAL_DELIVERY_OPTIONS, INITIAL_ORDERS, INITIAL_PROBLEMS } from '@/data/mockData';
 
@@ -37,9 +37,9 @@ interface AppContextType {
   submitOrder: (details: QuoteDetails, submissionId: string) => Promise<SubmissionReceipt>;
   submitProblemReport: (equipmentId: string, serialNumber: string, problemType: ProblemType, description: string, urgency: UrgencyLevel, submissionId: string) => Promise<SubmissionReceipt>;
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
-  updateProduct: (product: Product) => void;
-  deleteProduct: (productId: string) => void;
-  toggleProductAvailability: (productId: string, expectedReturnDate?: string, note?: string) => void;
+  updateProduct: (product: Product) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
+  toggleProductAvailability: (productId: string, expectedReturnDate?: string, note?: string) => Promise<void>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   updateProblemStatus: (problemId: string, status: ProblemStatus, plannedDate?: string, customerMessage?: string, internalNote?: string) => void;
   recordOfflinePurchase: (customerId: string, productId: string, quantity: number, serialNumber?: string) => void;
@@ -156,7 +156,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       if (cachedCustomer?.id && cachedCustomer.id !== DEFAULT_CUSTOMER.id) {
         setCurrentCustomer(cachedCustomer);
-        setRole('customer');
+        setRole((currentRole) => currentRole === 'visitor' ? 'customer' : currentRole);
       }
       setStorageReady(true);
       void loadProducts();
@@ -310,125 +310,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return receipt;
   };
 
-  const addProduct = async (productData: Omit<Product, 'id'>) => {
-    const response = await fetch(
-      `${API_URL}/products`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to create product');
-    }
-
-    const result = await response.json();
-    const data = result.data;
-
-    const newProduct: Product = {
-      id: data.id || `prod-${Date.now()}`,
-      reference: data.reference,
-      name: data.name,
-      type: data.type,
-      brand: data.brand,
-      domain: data.domain,
-      description: data.description,
-      features: data.features || [],
-      image: data.image,
-      status: data.status,
-      expectedReturnDate: data.expected_return_date || data.expectedReturnDate,
-      note: data.note,
-      visible: data.visible,
-      priceEstimate: data.price_estimate || data.priceEstimate,
-    };
-
-    setProducts(prev => [newProduct, ...prev]);
+  const addProduct = async (product: Omit<Product, 'id'>) => {
+    const result = await requestJson<{ data: DatabaseProduct }>('/products', jsonRequest('POST', product));
+    setProducts((previous) => [mapDbProduct(result.data), ...previous]);
   };
 
-  const updateProduct = async (updated: Product) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/products/${updated.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: updated.name,
-            reference: updated.reference,
-            type: updated.type,
-            brand: updated.brand,
-            domain: updated.domain,
-            description: updated.description,
-            features: updated.features,
-            image: updated.image,
-            status: updated.status,
-            expectedReturnDate: updated.expectedReturnDate || null,
-            note: updated.note || null,
-            visible: updated.visible,
-            priceEstimate: updated.priceEstimate || 'Sur devis',
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to update product');
-      }
-
-      const result = await response.json();
-      if (result.data) {
-        const mapped = mapDbProduct(result.data);
-        setProducts(prev => prev.map(p => p.id === mapped.id ? mapped : p));
-      } else {
-        setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
-      }
-    } catch (e) {
-      console.error('Error updating product via API:', e);
-      setProducts(prev => prev.map(p => p.id === updated.id ? updated : p));
-    }
+  const updateProduct = async (product: Product) => {
+    const { id, ...details } = product;
+    const result = await requestJson<{ data: DatabaseProduct }>(
+      `/products/${encodeURIComponent(id)}`, jsonRequest('PUT', details),
+    );
+    const updated = mapDbProduct(result.data);
+    setProducts((previous) => previous.map((entry) => entry.id === id ? updated : entry));
   };
 
   const deleteProduct = async (productId: string) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/products/${productId}`,
-        {
-          method: 'DELETE',
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to delete product');
-      }
-
-      setProducts(prev => prev.filter(p => p.id !== productId));
-    } catch (e) {
-      console.error('Error deleting product via API:', e);
-      setProducts(prev => prev.filter(p => p.id !== productId));
-    }
+    await requestJson(`/products/${encodeURIComponent(productId)}`, { method: 'DELETE' });
+    setProducts((previous) => previous.filter((product) => product.id !== productId));
   };
 
-  const toggleProductAvailability = (productId: string, expectedReturnDate?: string, note?: string) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id === productId) {
-        const nextStatus = p.status === 'available' ? 'unavailable' : 'available';
-        return {
-          ...p,
-          status: nextStatus,
-          expectedReturnDate: nextStatus === 'unavailable' ? (expectedReturnDate || 'Prochainement') : undefined,
-          note: nextStatus === 'unavailable' ? (note || 'Indisponibilité temporaire') : undefined,
-        };
-      }
-      return p;
-    }));
+  const toggleProductAvailability = async (productId: string, expectedReturnDate?: string, note?: string) => {
+    const product = products.find((entry) => entry.id === productId);
+    if (!product) throw new Error('Produit introuvable.');
+    const status = product.status === 'available' ? 'unavailable' : 'available';
+    const result = await requestJson<{ data: DatabaseProduct }>(
+      `/products/${encodeURIComponent(productId)}/availability`,
+      jsonRequest('PATCH', { status, expectedReturnDate, note }),
+    );
+    const updated = mapDbProduct(result.data);
+    setProducts((previous) => previous.map((entry) => entry.id === productId ? updated : entry));
   };
 
   const updateOrderStatus = (orderId: string, status: OrderStatus) => {

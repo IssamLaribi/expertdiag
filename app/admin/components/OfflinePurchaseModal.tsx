@@ -20,7 +20,7 @@ export function OfflinePurchaseModal({
   const selected = products.find((p) => p.id === productId);
 
   return (
-    <Modal eyebrow="Vente directe" title="Enregistrer un achat hors-site" onClose={onClose} maxWidth="max-w-xl">
+    <Modal title="Enregistrer un achat hors-site" onClose={onClose} maxWidth="max-w-xl">
       <form
         onSubmit={(e) => {
           e.preventDefault();

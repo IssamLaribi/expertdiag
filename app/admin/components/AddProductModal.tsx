@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Plus, CheckCircle2, Upload, X } from 'lucide-react';
-import { Domain, Brand } from '@/types';
+import type { Domain, Brand } from '@/types';
+import { ProductImage } from '@/components/ProductImage';
 import {
-  AppState,
   Product,
   ProductType,
   DEFAULT_IMAGE,
@@ -43,10 +43,11 @@ export function AddProductModal({
   products: Product[];
   domains?: Domain[];
   brands?: Brand[];
-  onSave: (payload: Record<string, unknown>) => void;
+  onSave: (payload: Omit<Product, 'id'>) => Promise<void>;
   onClose: () => void;
 }) {
   const isEditing = !!product;
+  const previousReturnDate = product?.expectedReturnDate ?? '';
   const [form, setForm] = useState<FormState>({
     name: product?.name || '',
     reference: product?.reference || '',
@@ -57,12 +58,15 @@ export function AddProductModal({
     image: product?.image || DEFAULT_IMAGE,
     priceEstimate: product?.priceEstimate || '',
     status: product?.status || 'available',
-    expectedReturnDate: product?.expectedReturnDate || '',
+    expectedReturnDate: /^\d{4}-\d{2}-\d{2}$/.test(previousReturnDate) ? previousReturnDate : '',
     note: product?.note || '',
     features: product?.features?.length ? product.features : ['Qualité certifiée'],
     visible: product?.visible ?? true,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const inFlight = useRef(false);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -81,8 +85,10 @@ export function AddProductModal({
     reader.readAsDataURL(file);
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (inFlight.current) return;
+    setSaveError('');
     const next: Record<string, string> = {};
     const ref = form.reference.trim().toLowerCase();
 
@@ -100,31 +106,45 @@ export function AddProductModal({
     if (Object.keys(next).length) return;
 
     const unavailable = form.status === 'unavailable';
-    onSave({
-      ...(isEditing ? { id: product.id } : {}),
-      name: form.name.trim(),
-      reference: form.reference.trim(),
-      type: form.type,
-      brand: form.brand,
-      domain: form.domain,
-      description: form.description.trim(),
-      features: form.features.map((f) => f.trim()).filter(Boolean),
-      image: form.image.trim(),
-      status: form.status,
-      visible: form.visible,
-      priceEstimate: form.priceEstimate.trim() || 'Sur devis',
-      ...(unavailable && form.expectedReturnDate ? { expectedReturnDate: form.expectedReturnDate } : {}),
-      ...(unavailable && form.note.trim() ? { note: form.note.trim() } : {}),
-    });
+    inFlight.current = true;
+    setSaving(true);
+    try {
+      await onSave({
+        name: form.name.trim(),
+        reference: ref,
+        type: form.type,
+        brand: form.brand,
+        domain: form.domain,
+        description: form.description.trim(),
+        features: form.features.map((feature) => feature.trim()).filter(Boolean),
+        image: form.image.trim(),
+        status: form.status,
+        visible: form.visible,
+        priceEstimate: form.priceEstimate.trim() || 'Sur devis',
+        expectedReturnDate: unavailable && form.expectedReturnDate ? form.expectedReturnDate : undefined,
+        note: unavailable && form.note.trim() ? form.note.trim() : undefined,
+      });
+    } catch (failure) {
+      setSaveError(failure instanceof Error ? failure.message : 'Le produit n’a pas été enregistré.');
+    } finally {
+      inFlight.current = false;
+      setSaving(false);
+    }
   };
 
-  const BRANDS = brands && brands.length > 0 ? brands.map(b => b.name) : ['Sysmex', 'Roche', 'Abbott', 'Siemens', 'Mindray', 'Medconn'];
-  const DOMAINS = domains && domains.length > 0 ? domains.map(d => d.name) : ['Hématologie', 'Biochimie', 'Immunologie', 'Microbiologie', 'Urinalyse'];
+  const BRANDS = [...new Set([
+    'Sysmex', 'Roche', 'Abbott', 'Siemens', 'Mindray', 'Medconn',
+    ...(brands ?? []).map(({ name }) => name), ...(product?.brand ? [product.brand] : []),
+  ])].sort((a, b) => a.localeCompare(b, 'fr'));
+  const DOMAINS = [...new Set([
+    'Hématologie', 'Biochimie', 'Immunologie', 'Microbiologie', 'Urinalyse',
+    ...(domains ?? []).map(({ name }) => name), ...(product?.domain ? [product.domain] : []),
+  ])].sort((a, b) => a.localeCompare(b, 'fr'));
 
   return (
-    <Modal eyebrow={isEditing ? 'Modification' : 'Nouveau produit'} title={isEditing ? 'Modifier le produit' : 'Ajouter un produit au catalogue'} onClose={onClose}>
+    <Modal title={isEditing ? 'Modifier le produit' : 'Ajouter un produit au catalogue'} onClose={() => { if (!saving) onClose(); }}>
       <form onSubmit={submit} noValidate>
-        <div className="p-6 sm:p-8 space-y-8">
+        <fieldset disabled={saving} className="p-6 sm:p-8 space-y-8">
           <fieldset className="space-y-5">
             <legend className="text-xs font-bold text-slate-900 uppercase tracking-[0.2em] mb-4">Identification</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -169,9 +189,7 @@ export function AddProductModal({
           <fieldset className="space-y-4">
             <legend className="text-xs font-bold text-slate-900 uppercase tracking-[0.2em] mb-4">Image du produit</legend>
             <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-5 items-start">
-              <div className="h-40 rounded-2xl border border-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center text-xs text-slate-400">
-                {form.image ? <img src={form.image} alt="Aperçu" className="w-full h-full object-cover" /> : 'Aperçu'}
-              </div>
+              <ProductImage src={form.image} alt="Aperçu du produit" className="h-40 rounded-lg border border-line" />
               <div className="space-y-4">
                 <Field label="URL de l’image" required error={errors.image}>
                   <input
@@ -246,13 +264,14 @@ export function AddProductModal({
               </div>
             )}
           </fieldset>
-        </div>
+        </fieldset>
 
+        {saveError && <p role="alert" className="px-6 pb-4 text-sm text-rose-800 sm:px-8">{saveError}</p>}
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 p-6 sm:p-8 border-t border-slate-200 bg-slate-50/70 rounded-b-3xl">
-          <button type="button" onClick={onClose} className={BTN_GHOST}>Annuler</button>
-          <button type="submit" className={BTN_PRIMARY}>
+          <button type="button" onClick={onClose} disabled={saving} className={BTN_GHOST}>Annuler</button>
+          <button type="submit" disabled={saving} className={BTN_PRIMARY}>
             <CheckCircle2 className="w-4 h-4" />
-            {isEditing ? 'Enregistrer les modifications' : 'Créer le produit'}
+            {saving ? 'Enregistrement…' : isEditing ? 'Enregistrer les modifications' : 'Créer le produit'}
           </button>
         </div>
       </form>

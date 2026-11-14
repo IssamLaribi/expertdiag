@@ -2,8 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { normalizeCatalogueText } from '@/lib/catalogue';
 import {
-  Shield,
   ShoppingCart,
   Plus,
   CheckCircle2,
@@ -13,11 +13,6 @@ import {
   Product,
   TabId,
   TABS,
-  OFFLINE_CUSTOMER_ID,
-  CONTAINER,
-  FOCUS,
-  BTN_PRIMARY,
-  BTN_SUCCESS,
 } from './constants';
 import { AddProductModal } from './components/AddProductModal';
 import { OfflinePurchaseModal } from './components/OfflinePurchaseModal';
@@ -32,6 +27,8 @@ export default function AdminBackOfficePage() {
     role,
     setRole,
     products,
+    productsLoading,
+    currentCustomer,
     domains,
     brands,
     orders,
@@ -70,12 +67,12 @@ export default function AdminBackOfficePage() {
   };
 
   const filteredProducts = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalizeCatalogueText(query);
     return products.filter((p) => {
-      if (fDomain !== 'all' && p.domain !== fDomain) return false;
+      if (fDomain !== 'all' && normalizeCatalogueText(p.domain) !== normalizeCatalogueText(fDomain)) return false;
       if (fType !== 'all' && p.type !== fType) return false;
       if (fStatus !== 'all' && p.status !== fStatus) return false;
-      if (q && !`${p.name} ${p.brand} ${p.reference}`.toLowerCase().includes(q)) return false;
+      if (q && !normalizeCatalogueText(`${p.name} ${p.brand} ${p.reference}`).includes(q)) return false;
       return true;
     });
   }, [products, query, fDomain, fType, fStatus]);
@@ -115,16 +112,10 @@ export default function AdminBackOfficePage() {
 
   const badges: Partial<Record<TabId, number>> = { orders: newOrders.length, sav: activeProblems.length };
 
-  const createProduct = async (payload: Record<string, unknown>) => {
-    try {
-      await addProduct(payload as any);
-
-      setShowAddModal(false);
-      notify(`« ${String(payload.name)} » a été ajouté au catalogue.`);
-    } catch (error) {
-      console.error('Error creating product:', error);
-      notify('Erreur lors de l’ajout du produit.');
-    }
+  const createProduct = async (payload: Omit<Product, 'id'>) => {
+    await addProduct(payload);
+    setShowAddModal(false);
+    notify(`« ${payload.name} » a été ajouté au catalogue.`);
   };
 
   const editProduct = (p: Product) => {
@@ -132,46 +123,31 @@ export default function AdminBackOfficePage() {
     setShowEditModal(true);
   };
 
-  const removeProduct = (p: Product) => {
-    if (window.confirm(`Supprimer définitivement « ${p.name} » ?`)) {
-      deleteProduct(p.id);
-      notify(`« ${p.name} » a été supprimé.`);
-    }
+  const removeProduct = async (product: Product) => {
+    if (!window.confirm(`Supprimer définitivement « ${product.name} » ?`)) return;
+    await deleteProduct(product.id);
+    notify(`« ${product.name} » a été supprimé.`);
   };
 
   return (
-    <div className="bg-slate-50/70 min-h-[calc(100svh-6rem)]">
-      <div className={`${CONTAINER} py-10 lg:py-12 space-y-10`}>
-        {/* Admin banner */}
-        <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl relative overflow-hidden flex flex-col lg:flex-row justify-between lg:items-center gap-8">
-          <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
-          <div className="relative space-y-3">
-            <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-3.5 py-1 rounded-full text-xs font-bold border border-emerald-500/30">
-              <Shield className="w-3.5 h-3.5" />
-              <span>Session admin active ({adminEmail})</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Tableau de bord <span className="text-blue-400">Back-Office</span>
-            </h1>
-            <p className="text-sm text-slate-400 max-w-2xl">
-              Gestion centralisée du catalogue, des commandes clients et du service après-vente (SAV).
-            </p>
+    <div className="min-h-[65vh] bg-paper">
+      <div className="site-width space-y-6 py-7 sm:py-10">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+          <div>
+            <h1 className="page-title">Administration</h1>
+            <p className="mt-2 text-sm text-slate-700">Catalogue, commandes et service après-vente.</p>
           </div>
-          <div className="relative flex flex-wrap items-center gap-3">
-            <button onClick={() => setShowAddModal(true)} className={BTN_PRIMARY}>
-              <Plus className="w-4 h-4" />
-              Nouveau produit
+          <div className="flex flex-wrap gap-2">
+            {tab !== 'catalog' && (
+              <button type="button" onClick={() => setShowAddModal(true)} disabled={productsLoading} className="button-primary">
+                <Plus size={17} aria-hidden="true" /> Nouveau produit
+              </button>
+            )}
+            <button type="button" onClick={() => setShowOfflineModal(true)} className="button-secondary">
+              <ShoppingCart size={17} aria-hidden="true" /> Achat hors site
             </button>
-            <button onClick={() => setShowOfflineModal(true)} className={BTN_SUCCESS}>
-              <ShoppingCart className="w-4 h-4" />
-              Achat hors-site
-            </button>
-            <button
-              onClick={() => setRole('visitor')}
-              className={`px-5 py-2.5 border border-slate-700 text-slate-200 hover:bg-slate-800 font-bold text-sm rounded-xl transition inline-flex items-center gap-2 ${FOCUS}`}
-            >
-              <LogOut className="w-4 h-4" />
-              Déconnexion
+            <button type="button" onClick={() => setRole('visitor')} className="button-secondary">
+              <LogOut size={17} aria-hidden="true" /> Déconnexion
             </button>
           </div>
         </div>
@@ -183,9 +159,9 @@ export default function AdminBackOfficePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8 lg:gap-12 items-start">
+        <div className="grid items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-6">
           {/* Navigation */}
-          <nav aria-label="Sections du back-office" className="bg-white border border-slate-200 rounded-3xl p-3 shadow-sm flex lg:flex-col gap-1 overflow-x-auto lg:sticky lg:top-32">
+          <nav aria-label="Sections du back-office" className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-white p-2 lg:sticky lg:top-4 lg:grid-cols-1">
             {TABS.map(({ id, label, icon: Icon }) => {
               const active = tab === id;
               const badge = badges[id];
@@ -194,8 +170,7 @@ export default function AdminBackOfficePage() {
                   key={id}
                   onClick={() => setTab(id)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition ${FOCUS} ${active ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
+                  className={`flex min-h-11 items-center gap-2 rounded-md px-2 py-2 text-sm font-semibold sm:px-3 ${active ? 'bg-brand text-white' : 'text-slate-700 hover:bg-paper'}`}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="flex-1 text-left">{label}</span>
@@ -209,7 +184,7 @@ export default function AdminBackOfficePage() {
             })}
           </nav>
 
-          <main className="min-w-0">
+          <div className="min-w-0">
             {tab === 'stats' && (
               <StatsTab
                 products={products}
@@ -225,6 +200,7 @@ export default function AdminBackOfficePage() {
             {tab === 'catalog' && (
               <CatalogTab
                 filteredProducts={filteredProducts}
+                productsLoading={productsLoading}
                 domains={domains}
                 query={query}
                 setQuery={setQuery}
@@ -259,7 +235,7 @@ export default function AdminBackOfficePage() {
                 }}
               />
             )}
-          </main>
+          </div>
         </div>
       </div>
 
@@ -277,15 +253,17 @@ export default function AdminBackOfficePage() {
         <AddProductModal
           product={selectedProduct}
           products={products}
+          domains={domains}
+          brands={brands}
           onClose={() => {
             setShowEditModal(false);
             setSelectedProduct(null);
           }}
           onSave={async (payload) => {
-            await updateProduct(payload as unknown as Product);
+            await updateProduct({ ...payload, id: selectedProduct.id });
             setShowEditModal(false);
             setSelectedProduct(null);
-            notify(`« ${String(payload.name)} » a été modifié.`);
+            notify(`« ${payload.name} » a été modifié.`);
           }}
         />
       )}
@@ -295,7 +273,7 @@ export default function AdminBackOfficePage() {
           products={products}
           onClose={() => setShowOfflineModal(false)}
           onSave={(productId, qty, serial) => {
-            recordOfflinePurchase(OFFLINE_CUSTOMER_ID, productId, qty, serial);
+            recordOfflinePurchase(currentCustomer.id, productId, qty, serial);
             setShowOfflineModal(false);
             notify('Achat hors-site enregistré et rattaché à l’historique client.');
           }}

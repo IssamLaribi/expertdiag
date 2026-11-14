@@ -1,156 +1,138 @@
 'use client';
 
-import React from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
-import {
-  Plus,
-  Search,
-  Trash2,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowUpRight,
-  Pencil,
-} from 'lucide-react';
-import {
-  AppState,
-  Product,
-  INPUT,
-  BTN_PRIMARY,
-  FOCUS,
-  TYPE_LABELS,
-} from '../constants';
-import { SectionTitle, Empty } from './AdminUI';
+import { ArrowUpRight, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { ProductImage } from '@/components/ProductImage';
+import { PRODUCT_TYPE_LABELS } from '@/lib/catalogue';
+import type { Domain, Product } from '@/types';
 
 export function CatalogTab({
-  filteredProducts,
-  domains,
-  query,
-  setQuery,
-  fDomain,
-  setFDomain,
-  fType,
-  setFType,
-  fStatus,
-  setFStatus,
-  onOpenAddModal,
-  onEditProduct,
-  onToggleAvailability,
-  onRemoveProduct,
+  filteredProducts, domains, productsLoading, query, setQuery, fDomain, setFDomain,
+  fType, setFType, fStatus, setFStatus, onOpenAddModal, onEditProduct, onToggleAvailability, onRemoveProduct,
 }: {
   filteredProducts: Product[];
-  domains: AppState['domains'];
+  domains: Domain[];
+  productsLoading: boolean;
   query: string;
-  setQuery: (v: string) => void;
+  setQuery: (value: string) => void;
   fDomain: string;
-  setFDomain: (v: string) => void;
+  setFDomain: (value: string) => void;
   fType: string;
-  setFType: (v: string) => void;
+  setFType: (value: string) => void;
   fStatus: string;
-  setFStatus: (v: string) => void;
+  setFStatus: (value: string) => void;
   onOpenAddModal: () => void;
-  onEditProduct: (p: Product) => void;
-  onToggleAvailability: (id: string) => void;
-  onRemoveProduct: (p: Product) => void;
+  onEditProduct: (product: Product) => void;
+  onToggleAvailability: (id: string) => Promise<void>;
+  onRemoveProduct: (product: Product) => Promise<void>;
 }) {
-  return (
-    <div className="space-y-8">
-      <SectionTitle
-        eyebrow="Catalogue"
-        title="Produits & disponibilité"
-        action={
-          <button onClick={onOpenAddModal} className={BTN_PRIMARY}>
-            <Plus className="w-4 h-4" />
-            Ajouter un produit
-          </button>
-        }
-      />
+  const requests = useRef(new Set<string>());
+  const [busy, setBusy] = useState<string[]>([]);
+  const [error, setError] = useState('');
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+  async function change(product: Product, action: () => Promise<void>) {
+    if (productsLoading || requests.current.has(product.id)) return;
+    requests.current.add(product.id);
+    setBusy((previous) => [...previous, product.id]);
+    setError('');
+    try {
+      await action();
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'La modification n’a pas été enregistrée.');
+    } finally {
+      requests.current.delete(product.id);
+      setBusy((previous) => previous.filter((id) => id !== product.id));
+    }
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold">Produits et stock</h2>
+        <button type="button" onClick={onOpenAddModal} disabled={productsLoading} className="button-primary">
+          <Plus size={17} aria-hidden="true" /> Ajouter un produit
+        </button>
+      </div>
+
+      <div className="grid gap-3 rounded-lg border border-line bg-white p-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="relative">
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-          <input className={`${INPUT} pl-10`} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, marque, référence..." />
+          <Search size={17} aria-hidden="true" className="pointer-events-none absolute top-3 left-3 text-slate-500" />
+          <input aria-label="Rechercher un produit" type="search" className="field-input pl-9" value={query}
+            onChange={(event) => setQuery(event.target.value)} placeholder="Nom ou référence" />
         </div>
-        <select className={INPUT} value={fDomain} onChange={(e) => setFDomain(e.target.value)}>
-          <option value="all">Tous les domaines</option>
-          {domains.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+        <select aria-label="Spécialité" className="field-input" value={fDomain} onChange={(event) => setFDomain(event.target.value)}>
+          <option value="all">Toutes les spécialités</option>
+          {domains.map((domain) => <option key={domain.id} value={domain.name}>{domain.name}</option>)}
         </select>
-        <select className={INPUT} value={fType} onChange={(e) => setFType(e.target.value)}>
+        <select aria-label="Type de produit" className="field-input" value={fType} onChange={(event) => setFType(event.target.value)}>
           <option value="all">Tous les types</option>
-          <option value="equipment">Équipement / Analyseur</option>
-          <option value="reagent">Réactif</option>
-          <option value="consumable">Consommable</option>
+          {Object.entries(PRODUCT_TYPE_LABELS).map(([type, label]) => <option key={type} value={type}>{label}</option>)}
         </select>
-        <select className={INPUT} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
+        <select aria-label="Disponibilité" className="field-input" value={fStatus} onChange={(event) => setFStatus(event.target.value)}>
           <option value="all">Tous les statuts</option>
           <option value="available">Disponible</option>
           <option value="unavailable">Indisponible</option>
         </select>
       </div>
 
+      {error && <p role="alert" className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">{error}</p>}
       {filteredProducts.length === 0 ? (
-        <Empty message="Aucun produit ne correspond à votre recherche." />
+        <p className="rounded-lg border border-line bg-white p-4 text-sm text-slate-700">
+          {productsLoading ? 'Chargement du catalogue…' : 'Aucun produit ne correspond à cette recherche.'}
+        </p>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <tr>
-                  <th className="px-5 py-4">Produit</th>
-                  <th className="px-5 py-4">Domaine</th>
-                  <th className="px-5 py-4">Type</th>
-                  <th className="px-5 py-4">Tarif</th>
-                  <th className="px-5 py-4">Disponibilité</th>
-                  <th className="px-5 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/70 transition">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-4 min-w-[260px]">
-                        <img src={p.image} alt={p.name} className="w-14 h-14 rounded-xl object-cover bg-slate-100 border border-slate-200 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 line-clamp-1">{p.name}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            <span className="font-mono font-bold text-blue-600">{p.reference}</span> · {p.brand}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-slate-700">{p.domain}</td>
-                    <td className="px-5 py-4 text-slate-700">{TYPE_LABELS[p.type] ?? p.type}</td>
-                    <td className="px-5 py-4 font-semibold text-slate-900">{p.priceEstimate || 'Sur devis'}</td>
-                    <td className="px-5 py-4">
-                      <button
-                        onClick={() => {}}
-                        title="Cliquer pour changer la disponibilité"
-                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 w-fit ${FOCUS} ${p.status === 'available' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 hover:bg-rose-200'
-                          }`}
-                      >
-                        {p.status === 'available' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-                        <span>{p.status === 'available' ? 'Disponible' : 'Indisponible'}</span>
-                      </button>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link href={`/catalogue/${p.id}`} aria-label="Voir la fiche publique" className={`p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition ${FOCUS}`}>
-                          <ArrowUpRight className="w-4 h-4" />
-                        </Link>
-                        <button onClick={() => onEditProduct(p)} aria-label="Modifier" title="Modifier" className={`p-2 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition ${FOCUS}`}>
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => onRemoveProduct(p)} aria-label="Supprimer" title="Supprimer" className={`p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition ${FOCUS}`}>
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ul className="divide-y divide-line rounded-lg border border-line bg-white">
+          {filteredProducts.map((product) => {
+            const available = product.status === 'available';
+            const updating = busy.includes(product.id);
+            const disabled = productsLoading || updating;
+            return (
+              <li key={product.id} className="grid items-center gap-3 p-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto_auto]">
+                <div className="flex min-w-0 items-center gap-3">
+                  <ProductImage src={product.image} alt="" className="size-14 shrink-0 rounded-md border border-line" />
+                  <div className="min-w-0 text-sm">
+                    <h3 className="font-semibold break-words">{product.name}</h3>
+                    <p className="mt-0.5 text-xs break-words text-slate-600">{product.reference} · {product.brand}</p>
+                    {!product.visible && <p className="mt-0.5 text-xs text-slate-600">Masqué du catalogue</p>}
+                  </div>
+                </div>
+
+                <div className="text-sm">
+                  <p>{product.domain} · {PRODUCT_TYPE_LABELS[product.type]}</p>
+                  <p className="text-xs text-slate-600">{product.priceEstimate || 'Sur devis'}</p>
+                </div>
+
+                <button
+                  type="button"
+                  className={`min-h-11 w-fit rounded-md border px-3 text-xs font-semibold disabled:opacity-55 ${available ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-line bg-paper text-slate-700'}`}
+                  aria-label={`Marquer ${product.name} ${available ? 'indisponible' : 'disponible'}`}
+                  disabled={disabled}
+                  onClick={() => void change(product, () => onToggleAvailability(product.id))}
+                >
+                  {updating ? 'Enregistrement…' : available ? 'Disponible' : 'Indisponible'}
+                </button>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {product.visible && (
+                    <Link href={`/catalogue/${encodeURIComponent(product.id)}`} className="button-secondary min-w-11 px-0" aria-label={`Voir ${product.name}`}>
+                      <ArrowUpRight size={17} aria-hidden="true" />
+                    </Link>
+                  )}
+                  <button type="button" className="button-secondary min-w-11 px-0" aria-label={`Modifier ${product.name}`}
+                    disabled={disabled} onClick={() => onEditProduct(product)}>
+                    <Pencil size={16} aria-hidden="true" />
+                  </button>
+                  <button type="button" className="button-secondary min-w-11 px-0 text-rose-800" aria-label={`Supprimer ${product.name}`}
+                    disabled={disabled} onClick={() => void change(product, () => onRemoveProduct(product))}>
+                    <Trash2 size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </div>
+    </section>
   );
 }

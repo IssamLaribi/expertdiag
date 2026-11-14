@@ -32,7 +32,7 @@ export function AdminLogin({
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Espace Administration</h1>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Connexion sécurisée réservée au personnel autorisé d’Expert Diagnostic.
+              Accès de démonstration au catalogue, aux commandes et au SAV.
             </p>
           </div>
 
@@ -64,7 +64,7 @@ export function AdminLogin({
 
             <div className="text-center pt-1">
               <button type="button" onClick={onDemoLogin} className={`text-xs font-bold text-blue-600 hover:text-blue-700 transition rounded ${FOCUS}`}>
-                Accès rapide démo (connexion directe Admin) →
+                Ouvrir la démonstration
               </button>
             </div>
           </form>

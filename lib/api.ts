@@ -1,4 +1,4 @@
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
 export async function requestJson<T>(path: string, options?: RequestInit): Promise<T> {
   let response: Response;
@@ -19,6 +19,6 @@ export async function requestJson<T>(path: string, options?: RequestInit): Promi
   return payload as T;
 }
 
-export function jsonRequest(method: 'POST' | 'PUT', body: object): RequestInit {
+export function jsonRequest(method: 'POST' | 'PUT' | 'PATCH', body: object): RequestInit {
   return { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
 }
