@@ -21,3 +21,8 @@ class ProductCreate(BaseModel):
     note: str | None = None
     visible: bool = True
     priceEstimate: str = "Sur devis"
+
+class ProductAvailability(BaseModel):
+    status: Literal["available", "unavailable"]
+    expectedReturnDate: date | None = None
+    note: str | None = None

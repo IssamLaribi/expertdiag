@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import APIRouter, HTTPException
 
 from app.database import local_db, supabase
-from app.models.product import ProductCreate
+from app.models.product import ProductAvailability, ProductCreate
 
 router = APIRouter()
 
@@ -76,6 +76,33 @@ def update_product(product_id: str, product: ProductCreate):
             if result.rowcount == 0:
                 raise HTTPException(404, "Produit introuvable.")
     return {"success": True, "data": updated}
+
+
+@router.patch("/products/{product_id}/availability")
+def update_availability(product_id: str, availability: ProductAvailability):
+    date = availability.expectedReturnDate
+    unavailable = availability.status == "unavailable"
+    changes = {
+        "status": availability.status,
+        "expected_return_date": date.isoformat() if unavailable and date else None,
+        "note": availability.note if unavailable else None,
+    }
+    if supabase is not None:
+        rows = supabase.table("products").update(changes).eq("id", product_id).execute().data
+        if not rows:
+            raise HTTPException(404, "Produit introuvable.")
+        product = rows[0]
+    else:
+        with local_db() as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT payload FROM products WHERE id = ?", (product_id,)).fetchone()
+            if row is None:
+                raise HTTPException(404, "Produit introuvable.")
+            product = json.loads(row["payload"])
+            product.pop("expectedReturnDate", None)
+            product.update(changes)
+            db.execute("UPDATE products SET payload = ? WHERE id = ?", (json.dumps(product), product_id))
+    return {"success": True, "data": product}
 
 
 @router.delete("/products/{product_id}")
