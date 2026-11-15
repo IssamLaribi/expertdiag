@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
+import { Onest } from 'next/font/google';
 import { AppShell } from '@/components/AppShell';
 import './globals.css';
 
-const geist = Geist({ variable: '--font-geist', subsets: ['latin'] });
+const onest = Onest({ variable: '--font-onest', subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
   title: 'Expert Diagnostic | Matériel de laboratoire',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={geist.variable}>
+    <html lang="fr" className={onest.variable}>
       <body>
         <AppShell>{children}</AppShell>
       </body>

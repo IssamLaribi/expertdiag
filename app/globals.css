@@ -1,49 +1,105 @@
 @import "tailwindcss";
 
+/* Palette taken from the logo: navy hexagon, cyan hexagon, red swoosh. */
 @theme inline {
-  --font-sans: var(--font-geist), Arial, sans-serif;
-  --color-ink: #172f40;
-  --color-brand: #194f67;
-  --color-brand-hover: #123b50;
-  --color-paper: #f4f7f8;
-  --color-line: #dce4e8;
+  --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
+  --color-ink: #0b1b3a;
+  --color-mute: #5a6680;
+  --color-brand: #0e2d63;
+  --color-brand-hover: #0a2350;
+  --color-accent: #0a6fb0;
+  --color-night: #071634;
+  --color-signal: #c8102e;
+  --color-paper: #f2f5fa;
+  --color-paper-deep: #e4ebf5;
+  --color-line: #dde4ee;
+  --color-line-strong: #c2cddd;
+  --color-ok: #10804a;
 }
 
 body {
-  @apply bg-white font-sans text-ink antialiased;
+  @apply bg-white font-sans text-[0.9375rem] text-ink antialiased;
 }
 
 :where(a, button, input, select, textarea, summary):focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 3px;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #0a6fb033;
+}
+
+@utility headline {
+  font-weight: 700;
+  letter-spacing: -0.028em;
+}
+
+/* Catalogue references, prices and counts. */
+@utility ref {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status pill: tinted background and dot, both taken from the text colour. */
+@utility tag {
+  @apply inline-flex items-center gap-1.5 rounded-full bg-current/10 px-2.5 py-1 text-xs leading-none font-semibold whitespace-nowrap before:size-1.5 before:shrink-0 before:rounded-full before:bg-current before:content-[''];
 }
 
 @layer components {
   .site-width {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-8;
   }
 
   .page-title {
-    @apply text-3xl font-semibold tracking-tight sm:text-4xl;
+    @apply headline text-[2.1rem] leading-[1.08] sm:text-[2.75rem];
   }
 
-  .button-primary, .button-secondary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-55;
+  .button-primary, .button-secondary, .button-light {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4.5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .button-primary {
-    @apply bg-brand text-white hover:bg-brand-hover;
+    @apply bg-brand text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.12),0_1px_2px_rgb(7_22_52/0.25)] hover:bg-brand-hover;
   }
 
   .button-secondary {
-    @apply border border-line bg-white text-ink hover:bg-paper;
+    @apply border border-line-strong bg-white text-ink hover:border-brand hover:text-brand;
+  }
+
+  .button-light {
+    @apply bg-white text-brand hover:bg-paper;
   }
 
   .field-input {
-    @apply w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-ink placeholder:text-slate-500;
+    @apply w-full min-w-0 rounded-lg border border-line-strong bg-white px-3.5 py-2.5 text-sm text-ink transition placeholder:text-mute/70 hover:border-mute/60 focus:border-accent focus:ring-3 focus:ring-accent/15 focus:outline-none;
+  }
+
+  .field-label {
+    @apply grid min-w-0 gap-1.5 text-sm font-medium;
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-white;
   }
 
   .skip-link {
-    @apply fixed top-2 left-2 z-60 -translate-y-20 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white focus:translate-y-0;
+    @apply fixed top-2 left-2 z-60 -translate-y-20 rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white focus:translate-y-0;
+  }
+}
+
+/* Gentle entrance for hero content; skipped when the visitor prefers reduced motion. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@utility rise {
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--delay, 0ms);
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
 }
