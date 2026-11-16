@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Package } from 'lucide-react';
+import { ImageOff } from 'lucide-react';
 
 export function ProductImage({
   src,
@@ -19,7 +19,7 @@ export function ProductImage({
   const validSource = src && /^(https?:\/\/|\/(?!\/)|data:image\/)/i.test(src) && failedSource !== src;
 
   return (
-    <div className={`relative grid place-items-center overflow-hidden bg-white ${className}`}>
+    <div className={`@container relative grid place-items-center overflow-hidden bg-paper bg-[radial-gradient(circle_at_50%_42%,#ffffff_0%,#ffffff_22%,var(--color-paper)_78%)] ${className}`}>
       {validSource ? (
         <Image
           src={src}
@@ -27,12 +27,13 @@ export function ProductImage({
           fill
           unoptimized
           loading={eager ? 'eager' : 'lazy'}
-          className="object-contain p-3"
+          className="object-contain p-[9%] mix-blend-multiply"
           onError={() => setFailedSource(src)}
         />
       ) : (
-        <span className="flex items-center gap-2 text-xs text-slate-500">
-          <Package size={18} aria-hidden="true" /> Photo indisponible
+        <span className="flex flex-col items-center gap-1.5 text-xs text-mute">
+          <ImageOff size={18} strokeWidth={1.5} aria-hidden="true" />
+          <span className="hidden @[9rem]:inline">Pas de photo</span>
         </span>
       )}
     </div>
