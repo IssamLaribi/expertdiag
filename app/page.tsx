@@ -165,27 +165,37 @@ export default function Home() {
         </section>
       )}
 
-      <section className="site-width py-10" aria-labelledby="featured-title">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 id="featured-title" className="text-2xl font-semibold tracking-tight">Dans le catalogue</h2>
-          <Link href="/catalogue" className="inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline">
-            Voir le catalogue <ArrowRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-        <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {visibleProducts.slice(0, 4).map((product) => (
-            <li key={product.id} className="overflow-hidden rounded-lg border border-line">
-              <Link href={`/catalogue/${product.id}`} className="group block h-full">
-                <ProductImage src={product.image} alt="" className="h-36 border-b border-line" />
-                <div className="px-4 py-3">
-                  <p className="text-xs text-slate-600">{product.brand} · {product.reference}</p>
-                  <p className="mt-1 text-sm font-semibold group-hover:underline">{product.name}</p>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {equipment.length > 0 && (
+        <section className="site-width pt-20 sm:pt-24" aria-labelledby="equipment-title">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 id="equipment-title" className="headline text-[1.9rem] sm:text-[2.4rem]">Analyseurs et équipements</h2>
+              <p className="mt-2 text-mute">Prix sur devis, avec un service après-vente pour chaque appareil fourni.</p>
+            </div>
+            <Link href="/catalogue?type=equipment" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
+              Tous les équipements <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+          <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {equipment.map((product) => <li key={product.id}><ProductCard product={product} large /></li>)}
+          </ul>
+        </section>
+      )}
+
+      {supplies.length > 0 && (
+        <section className="site-width pt-20 sm:pt-24" aria-labelledby="supplies-title">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 id="supplies-title" className="headline text-[1.9rem] sm:text-[2.4rem]">Réactifs et consommables</h2>
+              <p className="mt-2 text-mute">Prix indicatifs, confirmés sur le devis.</p>
+            </div>
+            <Link href="/catalogue" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
+              Voir tout <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-8"><ProductGrid products={supplies} /></div>
+        </section>
+      )}
 
       <section className="site-width pb-8">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-line bg-paper p-5 sm:p-7">
