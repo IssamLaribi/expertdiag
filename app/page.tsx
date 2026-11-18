@@ -221,13 +221,33 @@ export default function Home() {
         </section>
       )}
 
-      <section className="site-width pb-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-line bg-paper p-5 sm:p-7">
-          <div>
-            <h2 className="text-lg font-semibold">Besoin d’aide avec un équipement ?</h2>
-            <p className="mt-1 text-sm text-slate-700">Indiquez le modèle et le numéro de série à notre service après-vente.</p>
+      <section className="site-width pt-20 sm:pt-24" aria-labelledby="sav-title">
+        <div className="relative grid overflow-hidden rounded-3xl bg-night text-white lg:grid-cols-2">
+          <Molecule className="pointer-events-none absolute -bottom-24 -left-16 w-[26rem] text-white/[0.06]" />
+          <div className="relative px-6 py-10 sm:px-10 lg:px-14 lg:py-16">
+            <h2 id="sav-title" className="headline text-[2rem] leading-tight sm:text-[2.6rem]">Un analyseur en panne&nbsp;?</h2>
+            <p className="mt-4 max-w-md text-lg leading-relaxed text-white/70">
+              Notre service après-vente traite les pannes, les étalonnages et les messages d’erreur des appareils que nous fournissons.
+            </p>
+            <dl className="mt-8 grid max-w-md gap-2.5 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              {SAV_SHEET.map(({ label, value }) => (
+                <div key={label} className="rounded-xl bg-white/[0.06] px-4 py-3 ring-1 ring-white/10">
+                  <dt className="text-sm font-semibold">{label}</dt>
+                  <dd className="mt-0.5 text-sm text-white/60">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/contact?subject=sav" className="button-light">Écrire au SAV</Link>
+              <a href="tel:+21323456789" className="button-primary bg-white/10 shadow-none ring-1 ring-white/25 hover:bg-white/15">
+                <Phone size={16} aria-hidden="true" /> 023 45 67 89
+              </a>
+            </div>
           </div>
-          <Link href="/contact?subject=sav" className="button-secondary">Contacter le SAV</Link>
+          <div className="relative min-h-72 lg:min-h-full">
+            <Image src="/art/sav-technician.webp" alt="Technicien intervenant à l’intérieur d’un analyseur" fill unoptimized sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+            <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,var(--color-night)_0%,transparent_30%)] max-lg:bg-[linear-gradient(180deg,var(--color-night)_0%,transparent_35%)]" />
+          </div>
         </div>
       </section>
     </>
