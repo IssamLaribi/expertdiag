@@ -197,6 +197,30 @@ export default function Home() {
         </section>
       )}
 
+      {delivery.length > 0 && (
+        <section className="mt-20 bg-paper py-16 sm:mt-24 sm:py-20" aria-labelledby="delivery-title">
+          <div className="site-width grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)] lg:gap-14">
+            <div>
+              <span className="grid size-12 place-items-center rounded-2xl bg-brand text-white"><Truck size={22} aria-hidden="true" /></span>
+              <h2 id="delivery-title" className="headline mt-5 text-[1.9rem] sm:text-[2.4rem]">Livré dans toute l’Algérie</h2>
+              <p className="mt-3 max-w-sm leading-relaxed text-mute">Choisissez le mode de livraison au moment de la demande&nbsp;; le délai est confirmé sur le devis.</p>
+            </div>
+            <ul className="grid gap-4 sm:grid-cols-3">
+              {delivery.map((option) => (
+                <li key={option.id} className="card flex flex-col p-5">
+                  <p className="text-xs font-semibold text-mute">{option.type === 'own' ? 'Par nos soins' : 'Transporteur partenaire'}</p>
+                  <p className="mt-1.5 text-lg leading-snug font-semibold">{option.name.replace(/\s*\(Partenaire\)$/i, '').replace(/^Expert Diagnostic - /, '')}</p>
+                  <p className="mt-4 inline-flex w-fit items-center gap-2 rounded-lg bg-paper px-3 py-1.5 text-sm font-bold whitespace-nowrap">
+                    <Clock size={15} className="text-accent" aria-hidden="true" /> {option.estimatedDays}
+                  </p>
+                  <p className="mt-auto pt-4 text-sm leading-relaxed text-mute">{option.coveredWilayas.join(', ')}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       <section className="site-width pb-8">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-line bg-paper p-5 sm:p-7">
           <div>
