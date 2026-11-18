@@ -132,6 +132,39 @@ export default function Home() {
         </div>
       )}
 
+      {specialties.length > 0 && (
+        <section className="site-width pt-16 sm:pt-20" aria-labelledby="specialties-title">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 id="specialties-title" className="headline text-[1.9rem] sm:text-[2.4rem]">Parcourir par spécialité</h2>
+              <p className="mt-2 text-mute">{visibleProducts.length} références, de la biochimie à l’urinalyse.</p>
+            </div>
+            <Link href="/catalogue" className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
+              Tout le catalogue <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+          <ul className="-mx-4 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-0">
+            {specialties.map(({ id, name, cover, count }) => (
+              <li key={id} className="w-[64%] shrink-0 snap-start sm:w-[38%] lg:w-auto">
+                <Link href={`/catalogue?domain=${encodeURIComponent(name)}`} className="group relative block aspect-[2/3] overflow-hidden rounded-2xl bg-night shadow-[0_20px_40px_-24px_rgb(7_22_52/0.6)]">
+                  <Cover src={cover} alt="" />
+                  <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(to_top,rgb(7_22_52/0.95)_0%,rgb(7_22_52/0.4)_38%,transparent_62%)]" />
+                  <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                    <p className="text-xs font-medium text-white/65">{count} référence{count > 1 ? 's' : ''}</p>
+                    <p className="headline mt-1 flex items-center justify-between gap-2 text-[1.35rem]">
+                      {name}
+                      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/15 backdrop-blur-sm transition group-hover:bg-white group-hover:text-brand">
+                        <ArrowUpRight size={16} aria-hidden="true" />
+                      </span>
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="site-width py-10" aria-labelledby="featured-title">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 id="featured-title" className="text-2xl font-semibold tracking-tight">Dans le catalogue</h2>
