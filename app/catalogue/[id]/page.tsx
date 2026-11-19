@@ -15,7 +15,7 @@ async function ProductRoute({ params }: ProductPageProps) {
 
 export default function ProductDetailPage({ params }: ProductPageProps) {
   return (
-    <Suspense fallback={<p className="site-width py-8 text-sm text-slate-600">Chargement du produit…</p>}>
+    <Suspense fallback={<p className="site-width py-8 text-sm text-mute">Chargement du produit…</p>}>
       <ProductRoute params={params} />
     </Suspense>
   );
