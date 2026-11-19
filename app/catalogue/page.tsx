@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { Check, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
@@ -80,6 +81,7 @@ function CatalogueContent({ initialQuery, initialDomain, initialType }: { initia
     <>
       <div className="relative isolate overflow-hidden bg-night text-white">
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(40rem_24rem_at_80%_50%,#123d80_0%,transparent_70%)]" />
+        <Image src="/art/catalogue-illustration.webp" alt="" width={1400} height={933} priority unoptimized className="pointer-events-none absolute top-1/2 right-0 -z-10 hidden h-auto w-[30rem] -translate-y-1/2 lg:block xl:right-[6%]" />
         <div className="site-width py-10 sm:py-14 lg:py-20">
           <h1 className="page-title">Catalogue</h1>
           <p className="mt-2 text-white/70">
