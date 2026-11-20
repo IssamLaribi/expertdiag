@@ -2,7 +2,8 @@
 
 import { Suspense, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Mail, Phone } from 'lucide-react';
+import { CheckCircle2, Mail, Phone, Wrench } from 'lucide-react';
+import { Molecule } from '@/components/Molecule';
 import { jsonRequest, requestJson } from '@/lib/api';
 import type { SubmissionReceipt } from '@/types';
 
@@ -73,11 +74,15 @@ function ContactForm({ initialSubject, product, reference }: { initialSubject: S
 
   if (receipt) {
     return (
-      <div role="status" className="space-y-3 rounded-lg border border-line p-5 sm:p-6">
-        <h2 className="text-xl font-semibold">Message reçu</h2>
-        <p className="text-sm text-slate-700">Référence <strong>{receipt.reference}</strong></p>
-        <p className="text-sm text-slate-700">Notre équipe vous répondra aux coordonnées indiquées.</p>
-        <button type="button" className="button-secondary" onClick={() => {
+      <div role="status" className="card flex flex-col items-center px-6 py-14 text-center">
+        <div className="grid size-16 place-items-center rounded-full bg-ok/10 text-ok"><CheckCircle2 size={34} strokeWidth={1.75} aria-hidden="true" /></div>
+        <h2 className="headline mt-5 text-2xl">Message envoyé</h2>
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-mute">Notre équipe vous répondra aux coordonnées indiquées. Rappelez ce numéro si vous nous téléphonez.</p>
+        <div className="mt-6 rounded-xl border border-dashed border-line-strong bg-paper px-6 py-3">
+          <p className="text-xs text-mute">Numéro de message</p>
+          <p className="mt-0.5 text-xl font-bold tracking-wide tabular-nums">{receipt.reference}</p>
+        </div>
+        <button type="button" className="button-secondary mt-8" onClick={() => {
           setDraft((previous) => ({ ...previous, subject: 'other', message: '' }));
           setReceipt(undefined);
         }}>Écrire un autre message</button>
@@ -86,11 +91,14 @@ function ContactForm({ initialSubject, product, reference }: { initialSubject: S
   }
 
   return (
-    <form onSubmit={send} className="space-y-4 rounded-lg border border-line p-5 sm:p-6">
-      <h2 className="text-xl font-semibold">Écrivez-nous</h2>
-      <fieldset disabled={sending} className="grid gap-4 sm:grid-cols-2">
+    <form onSubmit={send} className="card space-y-5 p-6 sm:p-8">
+      <div>
+        <h2 className="headline text-2xl">Écrire un message</h2>
+        <p className="mt-1 text-sm text-mute">Tous les champs sont obligatoires.</p>
+      </div>
+      <fieldset disabled={sending} className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
         {CONTACT_FIELDS.map(({ field, label, type, autoComplete, minLength, maxLength }) => (
-          <label key={field} className="grid min-w-0 gap-1.5 text-sm font-medium">
+          <label key={field} className="field-label">
             {label}
             <input
               required name={field} type={type} autoComplete={autoComplete} minLength={minLength} maxLength={maxLength}
@@ -99,7 +107,7 @@ function ContactForm({ initialSubject, product, reference }: { initialSubject: S
             />
           </label>
         ))}
-        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+        <label className="field-label sm:col-span-2">
           Sujet
           <select className="field-input" name="subject" value={draft.subject}
             onChange={(event) => setDraft((previous) => ({ ...previous, subject: event.target.value as Subject }))}>
@@ -107,18 +115,19 @@ function ContactForm({ initialSubject, product, reference }: { initialSubject: S
           </select>
         </label>
         {hasProduct && (
-          <p className="rounded-md bg-paper p-3 text-sm text-slate-700 sm:col-span-2">
-            {[product, reference && `réf. ${reference}`].filter(Boolean).join(' · ')}
+          <p className="flex flex-wrap items-baseline gap-x-3 rounded-xl bg-paper px-4 py-3 text-sm sm:col-span-2">
+            {product && <span className="font-medium">{product}</span>}
+            {reference && <span className="ref text-mute">{reference}</span>}
           </p>
         )}
-        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
+        <label className="field-label sm:col-span-2">
           Votre message
           <textarea required name="message" rows={5} minLength={10} maxLength={3000} value={draft.message} className="field-input"
             onChange={(event) => setDraft((previous) => ({ ...previous, message: event.target.value }))} />
         </label>
       </fieldset>
-      {error && <p role="alert" className="text-sm text-rose-800">{error}</p>}
-      <button type="submit" className="button-primary" disabled={sending}>{sending ? 'Envoi en cours…' : 'Envoyer le message'}</button>
+      {error && <p role="alert" className="rounded-lg bg-signal/8 px-3 py-2 text-sm text-signal">{error}</p>}
+      <button type="submit" className="button-primary min-h-12 px-5" disabled={sending}>{sending ? 'Envoi en cours…' : 'Envoyer le message'}</button>
     </form>
   );
 }
@@ -134,23 +143,40 @@ function ContactQuery() {
 
 export default function ContactPage() {
   return (
-    <div className="site-width py-8 sm:py-10">
-      <h1 className="page-title">Contact</h1>
-      <p className="mt-3 text-slate-700">Une question sur une référence, une livraison ou un appareil ?</p>
-      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[1fr_2fr] lg:gap-8">
-        <section aria-label="Coordonnées" className="grid gap-4 rounded-lg border border-line bg-paper p-5 text-sm">
-          <a href="mailto:contact@expert-diagnostic.dz" className="flex items-center gap-3 break-all font-medium text-brand hover:underline">
-            <Mail size={18} className="shrink-0" aria-hidden="true" /> contact@expert-diagnostic.dz
-          </a>
-          <a href="tel:+21323456789" className="flex items-center gap-3 font-medium text-brand hover:underline">
-            <Phone size={18} className="shrink-0" aria-hidden="true" /> +213 (0) 23 45 67 89
-          </a>
-          <p className="text-slate-700">Pour le SAV, indiquez le modèle de l’appareil et son numéro de série.</p>
+    <>
+      <div className="border-b border-line bg-paper">
+        <div className="site-width py-10 sm:py-14">
+          <h1 className="page-title">Contact</h1>
+          <p className="mt-3 max-w-xl text-lg text-mute">Une question sur une référence, une livraison ou un appareil&nbsp;? Appelez-nous ou laissez un message.</p>
+        </div>
+      </div>
+      <div className="site-width grid grid-cols-[minmax(0,1fr)] items-start gap-6 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] lg:gap-8">
+        <section aria-label="Coordonnées" className="relative overflow-hidden rounded-2xl bg-night p-6 text-white sm:p-8">
+          <Molecule className="pointer-events-none absolute -right-28 -bottom-28 w-80 text-white/[0.07]" />
+          <div className="relative space-y-7">
+            <div>
+              <h2 className="text-sm text-white/60">Par téléphone</h2>
+              <a href="tel:+21323456789" className="headline mt-1 inline-flex items-center gap-3 text-[2rem] leading-tight hover:underline">
+                <Phone size={24} strokeWidth={1.75} aria-hidden="true" /> 023 45 67 89
+              </a>
+              <p className="mt-1 text-sm text-white/55">+213 (0) 23 45 67 89</p>
+            </div>
+            <div>
+              <h2 className="text-sm text-white/60">Par e-mail</h2>
+              <a href="mailto:contact@expert-diagnostic.dz" className="mt-1 inline-flex items-center gap-2.5 break-all font-semibold hover:underline">
+                <Mail size={18} className="shrink-0" aria-hidden="true" /> contact@expert-diagnostic.dz
+              </a>
+            </div>
+            <div className="rounded-xl bg-white/[0.07] p-4 text-sm ring-1 ring-white/10">
+              <h2 className="flex items-center gap-2 font-semibold"><Wrench size={16} aria-hidden="true" /> Service après-vente</h2>
+              <p className="mt-1.5 leading-relaxed text-white/70">Indiquez le modèle de l’appareil, son numéro de série et ce que vous observez, ou le code d’erreur affiché.</p>
+            </div>
+          </div>
         </section>
-        <Suspense fallback={<p className="text-sm text-slate-600">Chargement du formulaire…</p>}>
+        <Suspense fallback={<p className="text-sm text-mute">Chargement du formulaire…</p>}>
           <ContactQuery />
         </Suspense>
       </div>
-    </div>
+    </>
   );
 }
