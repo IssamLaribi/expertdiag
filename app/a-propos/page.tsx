@@ -12,18 +12,21 @@ const STEPS = [
     text: 'Le catalogue regroupe nos produits par spécialité, dont la biochimie, l’hématologie et l’immunologie. Chaque fiche donne la référence fabricant.',
     href: '/catalogue',
     link: 'Ouvrir le catalogue',
+    art: '/art/step-catalogue.webp',
   },
   {
     title: 'Demander un devis',
     text: 'Indiquez les références, les quantités et la wilaya de livraison. Notre équipe vous répond avec un prix et un délai.',
     href: '/contact?subject=quote',
     link: 'Faire une demande',
+    art: '/art/step-quote.webp',
   },
   {
     title: 'Entretenir un analyseur',
     text: 'Pour une intervention ou un étalonnage, transmettez au SAV le modèle, le numéro de série et les symptômes observés.',
     href: '/contact?subject=sav',
     link: 'Contacter le SAV',
+    art: '/art/step-service.webp',
   },
 ];
 
@@ -48,8 +51,11 @@ export default function AboutPage() {
       <section className="site-width py-16 sm:py-20" aria-labelledby="steps-title">
         <h2 id="steps-title" className="headline text-[1.9rem] sm:text-[2.4rem]">Comment nous travaillons</h2>
         <ol className="mt-8 grid gap-5 md:grid-cols-3">
-          {STEPS.map(({ title, text, href, link }, index) => (
+          {STEPS.map(({ title, text, href, link, art }, index) => (
             <li key={title} className="card group relative flex flex-col overflow-hidden p-6 sm:p-7">
+              <div className="-mx-6 -mt-6 mb-6 grid place-items-center bg-paper py-6 sm:-mx-7 sm:-mt-7">
+                <Image src={art} alt="" width={200} height={200} unoptimized className="size-40 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-[-2deg]" />
+              </div>
               <p className="text-sm font-semibold text-accent">Étape {index + 1}</p>
               <h3 className="headline relative mt-1 text-xl">{title}</h3>
               <p className="relative mt-3 text-[0.9375rem] leading-relaxed text-mute">{text}</p>
