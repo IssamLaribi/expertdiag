@@ -1,42 +1,65 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { Molecule } from '@/components/Molecule';
 
 export const metadata: Metadata = { title: 'À propos | Expert Diagnostic' };
 
+const STEPS = [
+  {
+    title: 'Choisir un produit',
+    text: 'Le catalogue regroupe nos produits par spécialité, dont la biochimie, l’hématologie et l’immunologie. Chaque fiche donne la référence fabricant.',
+    href: '/catalogue',
+    link: 'Ouvrir le catalogue',
+  },
+  {
+    title: 'Demander un devis',
+    text: 'Indiquez les références, les quantités et la wilaya de livraison. Notre équipe vous répond avec un prix et un délai.',
+    href: '/contact?subject=quote',
+    link: 'Faire une demande',
+  },
+  {
+    title: 'Entretenir un analyseur',
+    text: 'Pour une intervention ou un étalonnage, transmettez au SAV le modèle, le numéro de série et les symptômes observés.',
+    href: '/contact?subject=sav',
+    link: 'Contacter le SAV',
+  },
+];
+
 export default function AboutPage() {
   return (
-    <div className="site-width py-10 sm:py-12">
-      <div className="max-w-3xl">
-        <h1 className="page-title">À propos d’Expert Diagnostic</h1>
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-slate-700">
-          Nous fournissons des analyseurs, des réactifs et des consommables aux laboratoires de biologie médicale en Algérie.
-        </p>
-      </div>
+    <>
+      <section className="relative isolate overflow-hidden bg-night text-white">
+        <Molecule className="pointer-events-none absolute -top-16 -right-20 -z-10 w-[34rem] text-white/[0.06]" />
+        <div className="site-width grid grid-cols-[minmax(0,1fr)] items-center gap-10 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
+          <div>
+            <h1 className="rise headline text-[2.4rem] leading-[1.05] sm:text-[3.2rem]">À propos d’Expert Diagnostic</h1>
+            <p className="rise mt-6 max-w-lg text-xl leading-relaxed text-white/75" style={{ '--delay': '120ms' } as React.CSSProperties}>
+              Nous fournissons des analyseurs, des réactifs et des consommables aux laboratoires de biologie médicale en Algérie.
+            </p>
+          </div>
+          <div className="relative aspect-[16/10] overflow-hidden rounded-3xl ring-1 ring-white/10">
+            <Image src="/art/about-storeroom.webp" alt="Réserve de kits de réactifs et analyseur emballé sur palette" fill priority unoptimized sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+          </div>
+        </div>
+      </section>
 
-      <div className="mt-8 grid gap-6 border-y border-line py-7 md:grid-cols-3">
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Choisir un produit</h2>
-          <p className="text-sm leading-relaxed text-slate-700">
-            Le catalogue regroupe nos produits par spécialité, dont la biochimie, l’hématologie et l’immunologie.
-          </p>
-        </section>
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Demander un devis</h2>
-          <p className="text-sm leading-relaxed text-slate-700">
-            Indiquez les références, les quantités et la wilaya de livraison. Notre équipe vous répond avec un prix et un délai.
-          </p>
-        </section>
-        <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Entretenir un analyseur</h2>
-          <p className="text-sm leading-relaxed text-slate-700">
-            Pour une intervention ou un étalonnage, transmettez au SAV le modèle, le numéro de série et les symptômes observés.
-          </p>
-        </section>
-      </div>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link href="/catalogue" className="button-primary">Voir le catalogue</Link>
-        <Link href="/contact" className="button-secondary">Nous contacter</Link>
-      </div>
-    </div>
+      <section className="site-width py-16 sm:py-20" aria-labelledby="steps-title">
+        <h2 id="steps-title" className="headline text-[1.9rem] sm:text-[2.4rem]">Comment nous travaillons</h2>
+        <ol className="mt-8 grid gap-5 md:grid-cols-3">
+          {STEPS.map(({ title, text, href, link }, index) => (
+            <li key={title} className="card group relative flex flex-col overflow-hidden p-6 sm:p-7">
+              <p className="text-sm font-semibold text-accent">Étape {index + 1}</p>
+              <h3 className="headline relative mt-1 text-xl">{title}</h3>
+              <p className="relative mt-3 text-[0.9375rem] leading-relaxed text-mute">{text}</p>
+              <Link href={href} className="relative mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-brand hover:underline">
+                {link} <ArrowRight size={15} aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </>
   );
 }
