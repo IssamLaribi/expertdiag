@@ -8,17 +8,15 @@ export type ProductType = 'equipment' | 'reagent' | 'consumable';
 /* Customer that off-site purchases are attached to (same value as before). */
 export const OFFLINE_CUSTOMER_ID = 'cust-1';
 
-export const CONTAINER = 'max-w-[1760px] mx-auto px-6 sm:px-10 lg:px-16 2xl:px-20';
-export const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2';
+export const CONTAINER = 'site-width';
+/* Focus rings come from globals.css; kept so existing call sites still compile. */
+export const FOCUS = '';
 
-/* Every input, select and textarea is text-black */
-export const INPUT =
-  'w-full text-sm text-black placeholder:text-slate-400 border border-slate-300 rounded-xl px-3.5 py-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:bg-slate-100 disabled:text-slate-500';
+export const INPUT = 'field-input disabled:bg-paper disabled:text-mute';
 
-export const BTN_PRIMARY = `px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-600/25 transition inline-flex items-center justify-center gap-2 ${FOCUS}`;
-export const BTN_SUCCESS = `px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/25 transition inline-flex items-center justify-center gap-2 ${FOCUS}`;
-export const BTN_GHOST = `px-5 py-2.5 bg-white border border-slate-200 text-slate-800 font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition rounded-xl inline-flex items-center justify-center gap-2 ${FOCUS}`;
+export const BTN_PRIMARY = 'button-primary';
+export const BTN_SUCCESS = 'button-primary';
+export const BTN_GHOST = 'button-secondary';
 
 export const TYPE_LABELS: Record<string, string> = {
   equipment: 'Équipement / Analyseur',
@@ -45,9 +43,9 @@ export const PROBLEM_STATUSES = [
 
 export const TABS = [
   { id: 'stats', label: 'Synthèse', icon: LayoutDashboard },
-  { id: 'catalog', label: 'Catalogue & Stocks', icon: Package },
-  { id: 'orders', label: 'Demandes & Commandes', icon: ShoppingCart },
-  { id: 'sav', label: 'Rapports SAV', icon: Wrench },
+  { id: 'catalog', label: 'Catalogue et stock', icon: Package },
+  { id: 'orders', label: 'Demandes', icon: ShoppingCart },
+  { id: 'sav', label: 'SAV', icon: Wrench },
 ] as const;
 
 export type TabId = (typeof TABS)[number]['id'];
@@ -55,21 +53,22 @@ export type TabId = (typeof TABS)[number]['id'];
 export const DEFAULT_IMAGE =
   'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=900';
 
+/** Text colour for a `.tag` status marker. */
 export function statusTone(status: string) {
   switch (status) {
     case 'Delivered':
     case 'Resolved':
+      return 'text-ok';
     case 'Closed':
-      return 'bg-emerald-100 text-emerald-800';
-    case 'Confirmed':
-    case 'In progress':
-      return 'bg-blue-100 text-blue-800';
     case 'Cancelled':
-      return 'bg-rose-100 text-rose-800';
+      return 'text-mute';
+    case 'Confirmed':
+    case 'Contacted':
+    case 'In progress':
     case 'Intervention scheduled':
-      return 'bg-purple-100 text-purple-800';
+      return 'text-brand';
     default:
-      return 'bg-amber-100 text-amber-800';
+      return 'text-amber-700';
   }
 }
 

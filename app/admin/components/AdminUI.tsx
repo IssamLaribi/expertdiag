@@ -18,71 +18,48 @@ export function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+      <label className="block text-sm font-medium">
         {label}
-        {required && <span className="text-rose-500"> *</span>}
+        {required && <span className="text-signal" aria-hidden="true"> *</span>}
       </label>
       {children}
-      {hint && !error && <p className="text-xs text-slate-400">{hint}</p>}
-      {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
+      {hint && !error && <p className="text-xs text-mute">{hint}</p>}
+      {error && <p className="text-xs font-medium text-signal">{error}</p>}
     </div>
   );
 }
 
-export function SectionTitle({
-  eyebrow,
-  title,
-  action,
-}: {
-  eyebrow: string;
-  title: string;
-  action?: React.ReactNode;
-}) {
+export function SectionTitle({ title, action }: { eyebrow?: string; title: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <span className="w-8 h-[2px] bg-blue-600" />
-          <span className="text-xs font-bold text-blue-600 uppercase tracking-[0.2em]">{eyebrow}</span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{title}</h2>
-      </div>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h2 className="headline text-[1.6rem] leading-tight">{title}</h2>
       {action}
     </div>
   );
 }
 
 export function Empty({ message }: { message: string }) {
-  return (
-    <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 py-14 text-center text-sm text-slate-500">
-      {message}
-    </div>
-  );
+  return <p className="rounded-2xl border border-dashed border-line-strong bg-white px-6 py-14 text-center text-sm text-mute">{message}</p>;
 }
 
+/** One cell of the figures ledger on the summary tab. */
 export function StatCard({
   label,
   value,
   hint,
-  tone = 'blue',
+  alert = false,
 }: {
   label: string;
   value: number | string;
   hint?: string;
+  alert?: boolean;
   tone?: 'blue' | 'amber' | 'rose' | 'emerald' | 'slate';
 }) {
-  const tones = {
-    blue: 'text-blue-600',
-    amber: 'text-amber-600',
-    rose: 'text-rose-600',
-    emerald: 'text-emerald-600',
-    slate: 'text-slate-900',
-  };
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-      <p className={`text-4xl font-black mt-2 ${tones[tone]}`}>{value}</p>
-      {hint && <p className="text-xs text-slate-500 mt-1">{hint}</p>}
+    <div className="card p-5">
+      <p className="text-sm font-medium text-mute">{label}</p>
+      <p className="headline mt-2 text-[2.25rem] leading-none tabular-nums">{value}</p>
+      {hint && <p className={`mt-2 text-xs ${alert ? 'font-semibold text-signal' : 'text-mute'}`}>{hint}</p>}
     </div>
   );
 }
@@ -113,13 +90,13 @@ export function Modal({
       aria-labelledby={titleId}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
-      className={`m-auto w-[calc(100%-2rem)] max-h-dvh overflow-auto rounded-lg border border-line bg-white p-0 text-ink backdrop:bg-slate-950/45 ${maxWidth}`}
+      className={`m-auto w-[calc(100%-2rem)] max-h-[calc(100dvh-2rem)] overflow-auto rounded-2xl bg-white p-0 text-ink shadow-[0_30px_80px_-30px_rgb(7_22_52/0.6)] backdrop:bg-night/50 backdrop:backdrop-blur-[2px] ${maxWidth}`}
     >
       <div>
-        <div className="flex items-start justify-between gap-3 border-b border-line p-5 sm:px-8">
-          <h3 id={titleId} className="text-xl font-semibold">{title}</h3>
-          <button type="button" onClick={onClose} aria-label="Fermer" className="button-secondary min-w-11 px-0">
-            <X size={18} aria-hidden="true" />
+        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4 sm:px-8">
+          <h3 id={titleId} className="headline text-xl leading-tight">{title}</h3>
+          <button type="button" onClick={onClose} aria-label="Fermer" className="grid size-10 place-items-center rounded-full bg-paper text-ink/70 hover:bg-paper-deep hover:text-ink">
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
         {children}
