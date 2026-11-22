@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import type { ProblemStatus } from '@/types';
 import { AppState } from '../constants';
 import { SectionTitle, Empty } from './AdminUI';
 import { ProblemCard } from './ProblemCard';
@@ -10,7 +11,7 @@ export function SavTab({
   onSaveProblem,
 }: {
   problems: AppState['problems'];
-  onSaveProblem: (prob: AppState['problems'][number], status: any, date: string, msg: string, note: string) => void;
+  onSaveProblem: (prob: AppState['problems'][number], status: ProblemStatus, date: string, msg: string, note: string) => void;
 }) {
   return (
     <div className="space-y-8">

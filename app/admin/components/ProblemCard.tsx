@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import type { ProblemStatus } from '@/types';
 import {
   AppState,
   PROBLEM_STATUSES,
@@ -18,10 +19,10 @@ export function ProblemCard({
   onSave,
 }: {
   prob: AppState['problems'][number];
-  onSave: (status: any, date: string, msg: string, note: string) => void;
+  onSave: (status: ProblemStatus, date: string, msg: string, note: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [status, setStatus] = useState<string>(prob.status);
+  const [status, setStatus] = useState<ProblemStatus>(prob.status);
   const [date, setDate] = useState(prob.plannedInterventionDate || '');
   const [msg, setMsg] = useState(prob.messageToCustomer || '');
   const [note, setNote] = useState(prob.internalNote || '');
@@ -62,7 +63,7 @@ export function ProblemCard({
         <div className="p-6 bg-slate-50/70 rounded-2xl border border-slate-200 space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Field label="Statut">
-              <select className={INPUT} value={status} onChange={(e) => setStatus(e.target.value)}>
+              <select className={INPUT} value={status} onChange={(e) => setStatus(e.target.value as ProblemStatus)}>
                 {statuses.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </Field>

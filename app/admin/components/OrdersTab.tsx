@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import type { OrderStatus } from '@/types';
 import { Clock } from 'lucide-react';
 import {
   AppState,
@@ -20,7 +21,7 @@ export function OrdersTab({
   shownOrders: AppState['orders'];
   oFilter: string;
   setOFilter: (v: string) => void;
-  onUpdateOrderStatus: (id: string, status: any) => void;
+  onUpdateOrderStatus: (id: string, status: OrderStatus) => void;
 }) {
   return (
     <div className="space-y-8">
@@ -51,7 +52,7 @@ export function OrdersTab({
                   aria-label="Changer le statut"
                   className={`${INPUT} md:w-56`}
                   value={order.status}
-                  onChange={(e) => onUpdateOrderStatus(order.id, e.target.value as any)}
+                  onChange={(e) => onUpdateOrderStatus(order.id, e.target.value as OrderStatus)}
                 >
                   {ORDER_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
