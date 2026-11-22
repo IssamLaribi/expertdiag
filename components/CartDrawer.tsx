@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { CheckCircle2, Minus, Plus, Trash2, X } from 'lucide-react';
 import { ProductImage } from '@/components/ProductImage';
@@ -117,6 +118,7 @@ export function CartDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </div>
         ) : cart.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+            <Image src="/art/empty-quote.webp" alt="" width={220} height={220} unoptimized className="size-44" />
             <h3 className="headline mt-2 text-xl">Votre demande est vide</h3>
             <p className="mt-2 max-w-xs text-sm text-mute">Ajoutez des produits depuis le catalogue, puis envoyez-nous la liste pour recevoir un devis.</p>
             <Link href="/catalogue" onClick={close} className="button-primary mt-6">Parcourir le catalogue</Link>

@@ -165,6 +165,7 @@ function CatalogueContent({ initialQuery, initialDomain, initialType }: { initia
             <ProductGrid products={filtered} columns="sm:grid-cols-2 xl:grid-cols-3" />
           ) : !productsLoading && (
             <div className="card grid place-items-center px-6 py-16 text-center">
+              <Image src="/art/empty-search.webp" alt="" width={220} height={220} unoptimized className="size-44" />
               <h2 className="headline mt-2 text-2xl">Aucun produit trouvé</h2>
               <p className="mt-2 max-w-sm text-sm text-mute">Vérifiez la référence ou retirez un filtre. Si le produit n’est pas au catalogue, demandez-le nous directement.</p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">

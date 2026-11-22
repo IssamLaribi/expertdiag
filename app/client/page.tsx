@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRef, useState, type FormEvent } from 'react';
 import { useApp } from '@/context/AppContext';
 import { INITIAL_ORDERS, INITIAL_PROBLEMS } from '@/data/mockData';
@@ -190,6 +191,7 @@ export default function ClientPage() {
               </ul>
             ) : (
               <div className="card flex flex-col items-center px-6 py-16 text-center">
+                <Image src="/art/empty-orders.webp" alt="" width={220} height={220} unoptimized className="size-44" />
                 <h2 className="headline mt-2 text-2xl">Aucune demande pour le moment</h2>
                 <p className="mt-2 max-w-sm text-sm text-mute">Ajoutez des produits à votre demande depuis le catalogue, puis envoyez-la&nbsp;: elle apparaîtra ici avec son numéro.</p>
                 <Link href="/catalogue" className="button-primary mt-6">Parcourir le catalogue</Link>
