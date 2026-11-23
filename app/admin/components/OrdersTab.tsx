@@ -2,7 +2,6 @@
 
 import React from 'react';
 import type { OrderStatus } from '@/types';
-import { Clock } from 'lucide-react';
 import {
   AppState,
   ORDER_STATUSES,
@@ -24,12 +23,11 @@ export function OrdersTab({
   onUpdateOrderStatus: (id: string, status: OrderStatus) => void;
 }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <SectionTitle
-        eyebrow="Ventes"
-        title="Demandes & commandes clients"
+        title="Demandes clients"
         action={
-          <select className={`${INPUT} sm:w-60`} value={oFilter} onChange={(e) => setOFilter(e.target.value)} aria-label="Filtrer par statut">
+          <select className={`${INPUT} py-2 sm:w-56`} value={oFilter} onChange={(e) => setOFilter(e.target.value)} aria-label="Filtrer par statut">
             <option value="all">Tous les statuts</option>
             {ORDER_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
@@ -39,53 +37,67 @@ export function OrdersTab({
       {shownOrders.length === 0 ? (
         <Empty message="Aucune demande à afficher." />
       ) : (
-        <div className="space-y-5">
+        <div className="grid gap-4">
           {shownOrders.map((order) => (
-            <article key={order.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="font-mono font-bold text-blue-600 text-base">{order.reference}</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusTone(order.status)}`}>{labelOf(ORDER_STATUSES, order.status)}</span>
-                  <span className="text-sm font-bold text-slate-900">{order.laboratoryName} <span className="font-medium text-slate-500">({order.customerName})</span></span>
-                </div>
+            <article key={order.id} className="card grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-4 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_13rem]">
+              <div className="min-w-0 space-y-4">
+                <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <h3 className="text-lg font-bold tracking-wide tabular-nums">{order.reference}</h3>
+                  <span className={`tag ${statusTone(order.status)}`}>{labelOf(ORDER_STATUSES, order.status)}</span>
+                  {order.source === 'admin' && <span className="text-xs text-mute">Saisie hors site</span>}
+                </header>
+                <p className="text-sm">
+                  <span className="font-semibold">{order.laboratoryName}</span>
+                  <span className="text-mute"> · {order.customerName}</span>
+                </p>
+
+                <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+                  <div>
+                    <dt className="text-xs text-mute">Contact</dt>
+                    <dd className="mt-0.5 break-words">{order.email}<br /><span className="tabular-nums">{order.phone}</span></dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-mute">Livraison</dt>
+                    <dd className="mt-0.5">{order.deliveryOptionName}<br /><span className="text-mute">{order.address}, {order.wilaya}</span></dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-mute">Reçue le</dt>
+                    <dd className="mt-0.5 tabular-nums">{order.createdAt}</dd>
+                  </div>
+                </dl>
+
+                <table className="w-full overflow-hidden rounded-xl bg-paper text-sm">
+                  <caption className="sr-only">Articles de la demande {order.reference}</caption>
+                  <thead>
+                    <tr className="border-b border-line text-left text-xs text-mute">
+                      <th scope="col" className="px-4 py-2 font-medium">Article</th>
+                      <th scope="col" className="px-4 py-2 font-medium">Référence</th>
+                      <th scope="col" className="px-4 py-2 text-right font-medium">Qté</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {order.items.map((i, idx) => (
+                      <tr key={idx} className="border-b border-line last:border-0">
+                        <td className="px-4 py-2.5 font-medium">{i.productName}</td>
+                        <td className="ref px-4 py-2.5 text-mute">{i.reference}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold tabular-nums">{i.quantity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {order.comment && <p className="rounded-lg bg-paper px-3.5 py-2.5 text-sm text-mute">{order.comment}</p>}
+              </div>
+
+              <label className="field-label content-start">
+                Statut
                 <select
-                  aria-label="Changer le statut"
-                  className={`${INPUT} md:w-56`}
+                  className={INPUT}
                   value={order.status}
                   onChange={(e) => onUpdateOrderStatus(order.id, e.target.value as OrderStatus)}
                 >
                   {ORDER_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-sm">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Contact</p>
-                  <p className="text-slate-800">{order.email} | {order.phone}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Livraison</p>
-                  <p className="text-slate-800">{order.deliveryOptionName} - {order.address}, {order.wilaya}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Date</p>
-                  <p className="text-slate-800 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-slate-400" />{order.createdAt}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Articles de la demande</p>
-                <ul className="space-y-2">
-                  {order.items.map((i, idx) => (
-                    <li key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 bg-slate-50 px-4 py-3 rounded-xl text-sm">
-                      <span className="font-semibold text-slate-800">
-                        {i.productName} <span className="font-mono text-blue-600">({i.reference})</span>
-                      </span>
-                      <span className="font-bold text-slate-900">Qté : {i.quantity}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              </label>
             </article>
           ))}
         </div>
