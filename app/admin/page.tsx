@@ -131,11 +131,11 @@ export default function AdminBackOfficePage() {
 
   return (
     <div className="min-h-[65vh] bg-paper">
-      <div className="site-width space-y-6 py-7 sm:py-10">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+      <div className="border-b border-line bg-white">
+        <div className="site-width flex flex-wrap items-end justify-between gap-4 py-6 sm:py-8">
           <div>
-            <h1 className="page-title">Administration</h1>
-            <p className="mt-2 text-sm text-slate-700">Catalogue, commandes et service après-vente.</p>
+            <p className="text-sm text-mute">Back-office · {adminEmail}</p>
+            <h1 className="page-title mt-1">Administration</h1>
           </div>
           <div className="flex flex-wrap gap-2">
             {tab !== 'catalog' && (
@@ -151,34 +151,34 @@ export default function AdminBackOfficePage() {
             </button>
           </div>
         </div>
+      </div>
 
+      <div className="site-width space-y-6 py-8">
         {toast && (
-          <div role="status" className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-sm text-emerald-800">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div role="status" className="flex items-center gap-3 rounded-xl bg-ok/10 px-4 py-3 text-sm font-medium text-ok">
+            <CheckCircle2 size={18} className="shrink-0 text-ok" aria-hidden="true" />
             <span>{toast}</span>
           </div>
         )}
 
-        <div className="grid items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-6">
-          {/* Navigation */}
-          <nav aria-label="Sections du back-office" className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-white p-2 lg:sticky lg:top-4 lg:grid-cols-1">
+        <div className="grid items-start gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-8">
+          <nav aria-label="Sections du back-office" className="card flex gap-1 overflow-x-auto p-1.5 lg:sticky lg:top-24 lg:grid">
             {TABS.map(({ id, label, icon: Icon }) => {
               const active = tab === id;
               const badge = badges[id];
               return (
                 <button
                   key={id}
+                  type="button"
                   onClick={() => setTab(id)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex min-h-11 items-center gap-2 rounded-md px-2 py-2 text-sm font-semibold sm:px-3 ${active ? 'bg-brand text-white' : 'text-slate-700 hover:bg-paper'}`}
+                  className={`flex min-h-11 shrink-0 items-center gap-2.5 rounded-lg px-3 text-sm font-medium whitespace-nowrap transition-colors lg:w-full ${
+                    active ? 'bg-brand text-white' : 'text-ink/70 hover:bg-paper hover:text-ink'
+                  }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon size={16} strokeWidth={1.75} aria-hidden="true" />
                   <span className="flex-1 text-left">{label}</span>
-                  {badge ? (
-                    <span className={`min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${active ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-700'}`}>
-                      {badge}
-                    </span>
-                  ) : null}
+                  {badge ? <span className={`min-w-5 rounded-full px-1.5 text-center text-xs font-semibold tabular-nums ${active ? 'bg-white/20' : 'bg-signal text-white'}`}>{badge}</span> : null}
                 </button>
               );
             })}
