@@ -14,12 +14,12 @@ export function SavTab({
   onSaveProblem: (prob: AppState['problems'][number], status: ProblemStatus, date: string, msg: string, note: string) => void;
 }) {
   return (
-    <div className="space-y-8">
-      <SectionTitle eyebrow="Service après-vente" title="Rapports SAV & problèmes" />
+    <div className="space-y-5">
+      <SectionTitle title="Service après-vente" />
       {problems.length === 0 ? (
         <Empty message="Aucun rapport SAV pour le moment." />
       ) : (
-        <div className="space-y-5">
+        <div className="grid gap-4">
           {problems.map((prob) => (
             <ProblemCard
               key={prob.id}
