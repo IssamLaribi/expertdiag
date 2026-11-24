@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Shield, Lock, Mail, ArrowUpRight } from 'lucide-react';
-import { INPUT, BTN_PRIMARY, FOCUS } from '../constants';
+import Image from 'next/image';
+import { INPUT, BTN_PRIMARY } from '../constants';
 import { Field } from './AdminUI';
 
 export function AdminLogin({
@@ -23,53 +23,41 @@ export function AdminLogin({
   onDemoLogin: () => void;
 }) {
   return (
-    <div className="bg-slate-50/70 min-h-[calc(100svh-6rem)] flex items-center">
-      <div className="w-full max-w-xl mx-auto px-6 py-20">
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xl space-y-8">
-          <div className="text-center space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-sm">
-              <Shield className="w-7 h-7" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Espace Administration</h1>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              Accès de démonstration au catalogue, aux commandes et au SAV.
-            </p>
-          </div>
-
-          <form onSubmit={onLogin} className="space-y-5">
-            <Field label="Adresse e-mail admin">
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
-                <input type="email" required value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} className={`${INPUT} pl-10`} />
-              </div>
-            </Field>
-
-            <Field label="Mot de passe">
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
-                <input type="password" required value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className={`${INPUT} pl-10`} />
-              </div>
-            </Field>
-
-            {loginError && (
-              <div className="p-3 bg-rose-50 text-rose-700 text-xs rounded-xl font-medium">
-                Identifiants incorrects. Veuillez réessayer.
-              </div>
-            )}
-
-            <button type="submit" className={`${BTN_PRIMARY} w-full py-4`}>
-              <span>Se connecter au Back-Office</span>
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-
-            <div className="text-center pt-1">
-              <button type="button" onClick={onDemoLogin} className={`text-xs font-bold text-blue-600 hover:text-blue-700 transition rounded ${FOCUS}`}>
-                Ouvrir la démonstration
-              </button>
-            </div>
-          </form>
-        </div>
+    <div className="site-width grid items-center gap-10 py-12 sm:py-20 md:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] md:gap-16">
+      <div>
+        <Image src="/art/backoffice.webp" alt="" width={260} height={260} unoptimized className="mb-4 size-52 sm:size-60" />
+        <p className="text-sm text-mute">Réservé à l’équipe Expert Diagnostic</p>
+        <h1 className="page-title mt-2">Administration</h1>
+        <p className="mt-4 max-w-md leading-relaxed text-mute">
+          Catalogue et stock, demandes de devis, dossiers de service après-vente.
+        </p>
       </div>
+
+      <form onSubmit={onLogin} className="card space-y-5 p-6 shadow-[0_24px_60px_-30px_rgb(7_22_52/0.35)] sm:p-8">
+        <h2 className="headline text-xl">Connexion</h2>
+        <Field label="Adresse e-mail">
+          <input type="email" required autoComplete="username" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} className={INPUT} />
+        </Field>
+
+        <Field label="Mot de passe">
+          <input type="password" required autoComplete="current-password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className={INPUT} />
+        </Field>
+
+        {loginError && (
+          <p role="alert" className="rounded-lg bg-signal/8 px-3.5 py-2.5 text-sm text-signal">
+            Identifiants incorrects. Veuillez réessayer.
+          </p>
+        )}
+
+        <button type="submit" className={`${BTN_PRIMARY} min-h-12 w-full`}>Se connecter</button>
+
+        <p className="border-t border-line pt-4 text-sm text-mute">
+          Version de démonstration&nbsp;:{' '}
+          <button type="button" onClick={onDemoLogin} className="font-semibold text-brand underline-offset-4 hover:underline">
+            entrer sans identifiants
+          </button>
+        </p>
+      </form>
     </div>
   );
 }
