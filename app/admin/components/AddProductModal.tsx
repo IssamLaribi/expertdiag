@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Plus, CheckCircle2, Upload, X } from 'lucide-react';
+import { Plus, Upload, X } from 'lucide-react';
 import type { Domain, Brand } from '@/types';
 import { ProductImage } from '@/components/ProductImage';
 import {
@@ -11,7 +11,6 @@ import {
   INPUT,
   BTN_PRIMARY,
   BTN_GHOST,
-  FOCUS,
 } from '../constants';
 import { Field, Modal } from './AdminUI';
 
@@ -144,9 +143,9 @@ export function AddProductModal({
   return (
     <Modal title={isEditing ? 'Modifier le produit' : 'Ajouter un produit au catalogue'} onClose={() => { if (!saving) onClose(); }}>
       <form onSubmit={submit} noValidate>
-        <fieldset disabled={saving} className="p-6 sm:p-8 space-y-8">
+        <fieldset disabled={saving} className="space-y-9 p-5 sm:p-8">
           <fieldset className="space-y-5">
-            <legend className="text-xs font-bold text-slate-900 uppercase tracking-[0.2em] mb-4">Identification</legend>
+            <legend className="mb-4 w-full border-b border-line pb-2 text-base font-semibold">Identification</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Field label="Nom du produit" required error={errors.name}>
                 <input className={INPUT} value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Ex : Analyseur de biochimie BS-240" />
@@ -156,7 +155,7 @@ export function AddProductModal({
               </Field>
               <Field label="Marque / Fabricant" required error={errors.brand}>
                 <select className={INPUT} value={form.brand} onChange={(e) => set('brand', e.target.value)}>
-                  <option value="">-- Choisir une marque --</option>
+                  <option value="">Choisir une marque</option>
                   {BRANDS.map((brand) => (
                     <option key={brand} value={brand}>{brand}</option>
                   ))}
@@ -164,7 +163,7 @@ export function AddProductModal({
               </Field>
               <Field label="Domaine / Spécialité" required error={errors.domain}>
                 <select className={INPUT} value={form.domain} onChange={(e) => set('domain', e.target.value)}>
-                  <option value="">-- Choisir un domaine --</option>
+                  <option value="">Choisir un domaine</option>
                   {DOMAINS.map((domain) => (
                     <option key={domain} value={domain}>{domain}</option>
                   ))}
@@ -182,14 +181,14 @@ export function AddProductModal({
               </Field>
             </div>
             <Field label="Description" required error={errors.description}>
-              <textarea className={`${INPUT} resize-none`} rows={4} value={form.description} onChange={(e) => set('description', e.target.value)} placeholder="Présentez le produit, ses usages et ses points forts..." />
+              <textarea className={`${INPUT} resize-none`} rows={4} value={form.description} onChange={(e) => set('description', e.target.value)} placeholder="Usage, cadence, compatibilité…" />
             </Field>
           </fieldset>
 
           <fieldset className="space-y-4">
-            <legend className="text-xs font-bold text-slate-900 uppercase tracking-[0.2em] mb-4">Image du produit</legend>
+            <legend className="mb-4 w-full border-b border-line pb-2 text-base font-semibold">Image du produit</legend>
             <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-5 items-start">
-              <ProductImage src={form.image} alt="Aperçu du produit" className="h-40 rounded-lg border border-line" />
+              <ProductImage src={form.image} alt="Aperçu du produit" className="h-40 rounded-xl border border-line" />
               <div className="space-y-4">
                 <Field label="URL de l’image" required error={errors.image}>
                   <input
@@ -200,7 +199,7 @@ export function AddProductModal({
                   />
                 </Field>
                 <label className={`${BTN_GHOST} cursor-pointer`}>
-                  <Upload className="w-4 h-4" />
+                  <Upload size={16} aria-hidden="true" />
                   <span>Importer un fichier</span>
                   <input type="file" accept="image/*" className="sr-only" onChange={(e) => handleFile(e.target.files?.[0])} />
                 </label>
@@ -209,7 +208,7 @@ export function AddProductModal({
           </fieldset>
 
           <fieldset className="space-y-4">
-            <legend className="text-xs font-bold text-slate-900 uppercase tracking-[0.2em] mb-4">Caractéristiques techniques</legend>
+            <legend className="mb-4 w-full border-b border-line pb-2 text-base font-semibold">Caractéristiques techniques</legend>
             <div className="space-y-3">
               {form.features.map((feat, idx) => (
                 <div key={idx} className="flex gap-2">
@@ -223,21 +222,21 @@ export function AddProductModal({
                     type="button"
                     onClick={() => set('features', form.features.length > 1 ? form.features.filter((_, i) => i !== idx) : [''])}
                     aria-label="Supprimer la caractéristique"
-                    className={`px-3 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition ${FOCUS}`}
+                    className="grid min-w-11 place-items-center rounded-lg border border-line-strong text-mute hover:border-signal hover:text-signal"
                   >
-                    <X className="w-4 h-4" />
+                    <X size={16} aria-hidden="true" />
                   </button>
                 </div>
               ))}
-              <button type="button" onClick={() => set('features', [...form.features, ''])} className={`text-sm font-bold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1.5 transition rounded-lg ${FOCUS}`}>
-                <Plus className="w-4 h-4" />
+              <button type="button" onClick={() => set('features', [...form.features, ''])} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
+                <Plus size={16} aria-hidden="true" />
                 Ajouter une caractéristique
               </button>
             </div>
           </fieldset>
 
           <fieldset className="space-y-5">
-            <legend className="text-xs font-bold text-slate-900 uppercase tracking-[0.2em] mb-4">Disponibilité & publication</legend>
+            <legend className="mb-4 w-full border-b border-line pb-2 text-base font-semibold">Disponibilité & publication</legend>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Field label="Statut">
                 <select className={INPUT} value={form.status} onChange={(e) => set('status', e.target.value as FormState['status'])}>
@@ -246,15 +245,15 @@ export function AddProductModal({
                 </select>
               </Field>
               <div className="flex items-end">
-                <label className="flex items-center gap-3 cursor-pointer pb-2.5">
-                  <input type="checkbox" checked={form.visible} onChange={(e) => set('visible', e.target.checked)} className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" />
-                  <span className="text-sm font-medium text-slate-700">Visible sur le site public</span>
+                <label className="flex min-h-11 cursor-pointer items-center gap-3">
+                  <input type="checkbox" checked={form.visible} onChange={(e) => set('visible', e.target.checked)} className="size-4 accent-brand" />
+                  <span className="text-sm font-medium">Visible sur le site public</span>
                 </label>
               </div>
             </div>
 
             {form.status === 'unavailable' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 rounded-2xl bg-amber-50 border border-amber-200">
+              <div className="grid grid-cols-1 gap-5 rounded-xl bg-amber-50 p-5 ring-1 ring-amber-200 md:grid-cols-2">
                 <Field label="Date de retour estimée">
                   <input type="date" className={INPUT} value={form.expectedReturnDate} onChange={(e) => set('expectedReturnDate', e.target.value)} />
                 </Field>
@@ -266,11 +265,10 @@ export function AddProductModal({
           </fieldset>
         </fieldset>
 
-        {saveError && <p role="alert" className="px-6 pb-4 text-sm text-rose-800 sm:px-8">{saveError}</p>}
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 p-6 sm:p-8 border-t border-slate-200 bg-slate-50/70 rounded-b-3xl">
+        {saveError && <p role="alert" className="px-5 pb-4 text-sm text-signal sm:px-8">{saveError}</p>}
+        <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-line bg-paper px-5 py-4 sm:flex-row sm:justify-end sm:px-8">
           <button type="button" onClick={onClose} disabled={saving} className={BTN_GHOST}>Annuler</button>
           <button type="submit" disabled={saving} className={BTN_PRIMARY}>
-            <CheckCircle2 className="w-4 h-4" />
             {saving ? 'Enregistrement…' : isEditing ? 'Enregistrer les modifications' : 'Créer le produit'}
           </button>
         </div>

@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
-import { Product, INPUT, BTN_SUCCESS, BTN_GHOST } from '../constants';
+import { Product, INPUT, BTN_PRIMARY, BTN_GHOST } from '../constants';
 import { Field, Modal } from './AdminUI';
 
 export function OfflinePurchaseModal({
@@ -20,16 +19,16 @@ export function OfflinePurchaseModal({
   const selected = products.find((p) => p.id === productId);
 
   return (
-    <Modal title="Enregistrer un achat hors-site" onClose={onClose} maxWidth="max-w-xl">
+    <Modal title="Achat hors site" onClose={onClose} maxWidth="max-w-xl">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (productId) onSave(productId, qty, serial.trim());
         }}
       >
-        <div className="p-6 sm:p-8 space-y-5">
-          <p className="text-sm text-slate-500 leading-relaxed">
-            Ajoute un achat effectué hors du site dans l’historique du client.
+        <div className="space-y-5 p-5 sm:p-8">
+          <p className="text-sm leading-relaxed text-mute">
+            Ajoute à l’historique du client un achat conclu hors du site, par téléphone par exemple.
           </p>
           <Field label="Produit" required>
             <select className={INPUT} value={productId} onChange={(e) => setProductId(e.target.value)}>
@@ -45,10 +44,9 @@ export function OfflinePurchaseModal({
             </Field>
           </div>
         </div>
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 p-6 sm:p-8 border-t border-slate-200 bg-slate-50/70 rounded-b-3xl">
+        <div className="flex flex-col-reverse gap-3 border-t border-line bg-paper px-5 py-4 sm:flex-row sm:justify-end sm:px-8">
           <button type="button" onClick={onClose} className={BTN_GHOST}>Annuler</button>
-          <button type="submit" className={BTN_SUCCESS}>
-            <CheckCircle2 className="w-4 h-4" />
+          <button type="submit" className={BTN_PRIMARY}>
             Enregistrer l’achat
           </button>
         </div>
