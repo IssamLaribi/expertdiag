@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Clock, Phone, Search, Truck } from 'lucide-react';
+import { HeroLens } from '@/components/HeroLens';
 import { Molecule } from '@/components/Molecule';
 import { ProductImage } from '@/components/ProductImage';
 import { ProductCard, ProductGrid } from '@/components/ProductList';
@@ -56,10 +57,26 @@ export default function Home() {
   const supplies = visibleProducts.filter((product) => product.type !== 'equipment').slice(0, 4);
   const featured = equipment.find((product) => product.reference.toUpperCase() === 'MIN-BS240') ?? equipment[0];
   const delivery = deliveryOptions.filter(({ active }) => active);
+  const slides = specialties.filter(({ id }) => SPECIALTY_ART.has(id)).map(({ id, name, count }) => ({ slug: id, name, count }));
+  const [lens, setLens] = useState(0);
+  const [pointing, setPointing] = useState(false);
+
+  // The lens moves to the next slide on its own unless the visitor is choosing one or prefers less motion.
+  useEffect(() => {
+    if (pointing || slides.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setInterval(() => setLens((index) => (index + 1) % slides.length), 3800);
+    return () => window.clearInterval(timer);
+  }, [pointing, slides.length]);
+
+  function point(slug: string) {
+    const index = slides.findIndex((slide) => slide.slug === slug);
+    if (index >= 0) setLens(index);
+    setPointing(true);
+  }
 
   return (
     <>
-      {/* Hero: text on the left, illustration on the right. */}
+      {/* Hero: text on the left, microscope lens on the right. */}
       <section className="relative isolate overflow-hidden bg-night text-white">
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(48rem_32rem_at_78%_40%,#123d80_0%,transparent_68%),radial-gradient(30rem_20rem_at_0%_100%,#0e2d63_0%,transparent_70%)]" />
         <Molecule className="pointer-events-none absolute -bottom-28 -left-24 -z-10 w-[32rem] text-white/[0.05]" />
@@ -88,26 +105,30 @@ export default function Home() {
 
             {specialties.length > 0 && (
               <ul className="rise mt-6 flex flex-wrap gap-2" aria-label="Spécialités" style={delay(320)}>
-                {specialties.map(({ id, name }) => (
-                  <li key={id}>
-                    <Link href={`/catalogue?domain=${encodeURIComponent(name)}`} className="inline-flex rounded-full bg-white/[0.08] px-3.5 py-1.5 text-sm text-white/90 ring-1 ring-white/20 backdrop-blur-sm transition hover:bg-white/20 hover:text-white">
-                      {name}
-                    </Link>
-                  </li>
-                ))}
+                {specialties.map(({ id, name }) => {
+                  const shown = slides[lens]?.slug === id;
+                  return (
+                    <li key={id}>
+                      <Link
+                        href={`/catalogue?domain=${encodeURIComponent(name)}`}
+                        onPointerEnter={() => point(id)}
+                        onPointerLeave={() => setPointing(false)}
+                        onFocus={() => point(id)}
+                        onBlur={() => setPointing(false)}
+                        className={`inline-flex rounded-full px-3.5 py-1.5 text-sm ring-1 backdrop-blur-sm transition duration-300 ${
+                          shown ? 'bg-white text-brand ring-white' : 'bg-white/[0.08] text-white/90 ring-white/20 hover:bg-white/20 hover:text-white'
+                        }`}
+                      >
+                        {name}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
-          <div className="rise relative mx-auto w-full max-w-lg lg:max-w-none" style={delay(200)}>
-            <Image
-              src="/art/hero-illustration.webp"
-              alt=""
-              width={1400}
-              height={933}
-              priority
-              unoptimized
-              className="h-auto w-full lg:scale-[1.12]"
-            />
+          <div className="rise mt-6 lg:mt-0" style={delay(200)}>
+            <HeroLens slides={slides} active={slides.length ? lens % slides.length : 0} />
           </div>
         </div>
       </section>
