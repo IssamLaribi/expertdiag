@@ -29,7 +29,7 @@ export function Field({
   );
 }
 
-export function SectionTitle({ title, action }: { eyebrow?: string; title: string; action?: React.ReactNode }) {
+export function SectionTitle({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h2 className="headline text-[1.6rem] leading-tight">{title}</h2>
@@ -53,7 +53,6 @@ export function StatCard({
   value: number | string;
   hint?: string;
   alert?: boolean;
-  tone?: 'blue' | 'amber' | 'rose' | 'emerald' | 'slate';
 }) {
   return (
     <div className="card p-5">
