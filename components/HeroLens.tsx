@@ -13,7 +13,6 @@ export type LensSlide = { slug: string; name: string; count: number };
  */
 export function HeroLens({ slides, active }: { slides: LensSlide[]; active: number }) {
   const stage = useRef<HTMLDivElement>(null);
-  const current = slides[active];
 
   // Pointer parallax through CSS variables, so moving the mouse never re-renders.
   function track(event: PointerEvent<HTMLDivElement>) {
@@ -60,16 +59,6 @@ export function HeroLens({ slides, active }: { slides: LensSlide[]; active: numb
           <div className="absolute inset-0 rounded-full shadow-[inset_0_0_40px_rgb(14_45_99/0.35)]" />
         </div>
 
-        {/* Label styled as a glass slide: frosted end with the name, clear glass after it. */}
-        {current && (
-          <div className="absolute -bottom-[9%] left-1/2 flex -translate-x-1/2 overflow-hidden rounded-md shadow-[0_14px_30px_-12px_rgb(0_0_0/0.7)] ring-1 ring-white/40">
-            <div key={current.slug} className="rise bg-white/95 px-3.5 py-2 text-ink">
-              <p className="text-[0.8125rem] leading-tight font-bold whitespace-nowrap">{current.name}</p>
-              <p className="text-[0.6875rem] leading-tight whitespace-nowrap text-mute">{current.count} référence{current.count > 1 ? 's' : ''}</p>
-            </div>
-            <div className="w-16 bg-white/15 backdrop-blur-sm" />
-          </div>
-        )}
       </div>
 
       <div className="absolute bottom-[3%] left-[-2%] w-[33%] transition-[translate] duration-500 ease-out motion-reduce:transition-none" style={depth(16, 10)}>
